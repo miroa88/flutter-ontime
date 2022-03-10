@@ -28,6 +28,10 @@ class _FromScratchPageState extends State<FromScratchPage> {
   Widget build(BuildContext context) {
     double _width = MediaQuery.of(context).size.width;
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Log in'),
+      ),
+
       //backgroundColor: Colors.indigo[300],
         body: SingleChildScrollView(
           child: Column(
@@ -46,19 +50,19 @@ class _FromScratchPageState extends State<FromScratchPage> {
 
                         children: [
 
-                            Container(
-                              margin: EdgeInsets.only(left: 5, bottom: 30),
-                              child: Text(
-                                "Log in",
-                                style: GoogleFonts.lato(
-                                    textStyle: Theme.of(context).textTheme.headline4,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold,
-                                    fontStyle: FontStyle.normal,
-                                    color: Colors.black
-                                ),
-                              ),
-                            ),
+                            // Container(
+                            //   margin: EdgeInsets.only(left: 5, bottom: 30),
+                            //   child: Text(
+                            //     "Log in",
+                            //     style: GoogleFonts.lato(
+                            //         textStyle: Theme.of(context).textTheme.headline4,
+                            //         fontSize: 30,
+                            //         fontWeight: FontWeight.bold,
+                            //         fontStyle: FontStyle.normal,
+                            //         color: Colors.black
+                            //     ),
+                            //   ),
+                            // ),
                         ],
                       ),
                     Container(
@@ -112,7 +116,7 @@ class _FromScratchPageState extends State<FromScratchPage> {
                             //Navigator.push(context,MaterialPageRoute(builder: (context) => UserProfilePage()));
                           }).catchError((onError) => print("sgined in failed"));
                         },
-                        child: Text("LOG IN"),
+                        child: Text("SIGN IN"),
                       ),
                     ),
                      TextButton(

@@ -41,6 +41,8 @@ dependencies:
   calendar_timeline: ^1.0.4
 
 
+
+
 flutter_native_splash:
   color: "#8890d2"
 #  bachground_image: images/splashsplash2x.png

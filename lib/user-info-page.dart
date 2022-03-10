@@ -1,3 +1,5 @@
+//log out page
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class UserInfoPage extends StatefulWidget {
@@ -73,7 +75,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
           ),
           TextButton(
-              onPressed: () {},
+              onPressed: () {
+                FirebaseAuth.instance.signOut();
+              },
               child: Row(
                 children: [
                   Icon( // <-- Icon

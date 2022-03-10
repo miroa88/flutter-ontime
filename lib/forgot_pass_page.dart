@@ -1,4 +1,10 @@
+//import 'dart:html';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import 'from_scratch.dart';
+
 class ForgotPassPage extends StatefulWidget {
   const ForgotPassPage({Key? key}) : super(key: key);
 
@@ -7,9 +13,11 @@ class ForgotPassPage extends StatefulWidget {
 }
 
 class _ForgotPassPageState extends State<ForgotPassPage> {
+  var emailController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    var emailController;
+
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
@@ -81,10 +89,7 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
                                   primary: Colors.blue,
 
                                 ),
-                                onPressed: () {
-                                  print(width);
-
-                                },
+                                onPressed: resetPassword,
                                 child: Text("GET LINK"),
                               ),
                             ),
@@ -113,6 +118,19 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
 
 
     );
+  }
+
+  Future resetPassword() async{
+    print(emailController.text);
+    await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: emailController.text).then((value) {
+          print("sent link seccesfully");
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>  FromScratchPage()),
+          );
+    }).catchError((onError) => print(onError.toString()));
+
   }
 }
 
