@@ -117,25 +117,25 @@ class _RegisterPageState extends State<RegisterPage> {
 
                             ),
                             onPressed: ()  {
-                              try {
                                 FirebaseAuth.instance.createUserWithEmailAndPassword(
                                     email: emailController.text,
                                     password: passController.text,
                                 ).then((value) {
-                                   Navigator.push(
+                                   Navigator.pushAndRemoveUntil(
                                      context,
-                                     MaterialPageRoute(builder: (context) => const FromScratchPage()),
+                                     MaterialPageRoute(builder: (context) => FromScratchPage()),
+                                         (Route<dynamic> route) => false,
                                    );
-                                 });
-                              } on FirebaseAuthException catch (e) {
-                                if (e.code == 'weak-password') {
-                                  print('The password provided is too weak.');
-                                } else if (e.code == 'email-already-in-use') {
-                                  print('The account already exists for that email.');
-                                }
-                              } catch (e) {
-                                print(e);
-                              }
+                                 }).catchError((e) {
+                                  if (e.code == 'weak-password') {
+                                    print('The password provided is too weak.');
+                                  } else if (e.code == 'email-already-in-use') {
+                                    print('The account already exists for that email.');
+                                  } else{
+                                    print(e);
+                                  }}).whenComplete(() async{
+                                  await FirebaseAuth.instance.signOut();
+                                });
                             },
                             child: Text("SIGN UP"),
                           ),
@@ -143,14 +143,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(
                           height: (width - 10) / 6,
                         ),
-
-
-
                       ],
                     ),
-
-
-
                Center(
                     child: Container(
                       width: width/3,

@@ -26,10 +26,8 @@ class _ToDoPageState extends State<ToDoPage> {
   Widget build(BuildContext context) {
     List<String> items = [
       'CS2500',
-      'CS6533',
       'CS2144',
       'CS2500',
-      'CS6533',
       'CS2144',
     ];
     return Scaffold(

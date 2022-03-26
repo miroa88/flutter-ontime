@@ -2,6 +2,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'from_scratch.dart';
+
 class UserInfoPage extends StatefulWidget {
   const UserInfoPage({Key? key}) : super(key: key);
 
@@ -75,8 +77,13 @@ class _UserInfoPageState extends State<UserInfoPage> {
 
           ),
           TextButton(
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
+              onPressed: () async{
+                await FirebaseAuth.instance.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => FromScratchPage()),
+                      (Route<dynamic> route) => false,
+                );
               },
               child: Row(
                 children: [

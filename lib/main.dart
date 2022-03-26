@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
               return Center(child: Text("something went wrong"),);
             }
             else if(snapshot.hasData){
-              return MyNavigation();
+              return MyNavigation(FirebaseAuth.instance.currentUser!.uid);
             }
             else{
               return FromScratchPage();

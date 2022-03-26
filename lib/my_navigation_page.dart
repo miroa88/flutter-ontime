@@ -7,7 +7,9 @@ import 'search_meeting-page.dart';
 import 'user-info-page.dart';
 
 class MyNavigation extends StatefulWidget {
-  const MyNavigation({Key? key}) : super(key: key);
+  final String documentId;
+  MyNavigation(this.documentId);
+  // MyNavigation({Key? key, required this.documentId}) : super(key: key);
 
   @override
   _MyNavigationState createState() => _MyNavigationState();
@@ -18,27 +20,22 @@ class _MyNavigationState extends State<MyNavigation> {
   int _selectedIndex = 0;
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
-  final screens = [
-
-    MyListView(),
-    SearchMeeting(),
-    ToDoPage(),
-    UserInfoPage(),
-
-  ];
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     }
-
     );
-
-
   }
 
   @override
   Widget build(BuildContext context) {
+    final screens = [
+      MyListView(widget.documentId),
+      SearchMeeting(),
+      ToDoPage(),
+      UserInfoPage(),
+
+    ];
     return Scaffold(
       body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

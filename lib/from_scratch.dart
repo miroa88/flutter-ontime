@@ -107,13 +107,16 @@ class _FromScratchPageState extends State<FromScratchPage> {
                           primary: Colors.blue,
 
                         ),
-                        onPressed: () {
-
-                          FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passController.text)
+                        onPressed: () async{
+                          await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passController.text)
                               .then((value){
                             print("sgined in seccessfully");
-                            Navigator.push(context,MaterialPageRoute(builder: (context) => MyNavigation()));
-                            //Navigator.push(context,MaterialPageRoute(builder: (context) => UserProfilePage()));
+                            // Navigator.push(context,MaterialPageRoute(builder: (context) => MyNavigation(value.user!.uid)));
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => MyNavigation(value.user!.uid)),
+                                  (Route<dynamic> route) => false,
+                            );
                           }).catchError((onError) => print("sgined in failed"));
                         },
                         child: Text("SIGN IN"),

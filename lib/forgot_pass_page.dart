@@ -87,7 +87,6 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
                               child: ElevatedButton (
                                 style: ElevatedButton.styleFrom(
                                   primary: Colors.blue,
-
                                 ),
                                 onPressed: resetPassword,
                                 child: Text("GET LINK"),
@@ -125,9 +124,10 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
     await FirebaseAuth.instance.sendPasswordResetEmail(
         email: emailController.text).then((value) {
           print("sent link seccesfully");
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) =>  FromScratchPage()),
+            MaterialPageRoute(builder: (context) => FromScratchPage()),
+                (Route<dynamic> route) => false,
           );
     }).catchError((onError) => print(onError.toString()));
 

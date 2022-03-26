@@ -1,15 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'meeting_date.dart';
+import 'my_navigation_page.dart';
 class CreateMetings extends StatefulWidget {
-  const CreateMetings({Key? key}) : super(key: key);
+  // const CreateMetings({Key? key}) : super(key: key);
+  final String userId;
+  final String recordId;
+  CreateMetings(this.userId, this.recordId);
 
   @override
   _CreateMetingsState createState() => _CreateMetingsState();
 }
 
 class _CreateMetingsState extends State<CreateMetings> {
+
+  var titleController = TextEditingController();
 
   String selectedValue = "Please select";
   List<DropdownMenuItem<String>> get dropdownItems{
@@ -25,9 +32,23 @@ class _CreateMetingsState extends State<CreateMetings> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Meeting'),
+        title: Row(
+          children: [
+            Text('Create New Meeting'),
+            Spacer(),
+            IconButton(onPressed: (){
+              _deleteUser(widget.userId,widget.recordId);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => MyNavigation(widget.userId)),
+                    (Route<dynamic> route) => false,
+              );
+            }, icon: Icon(Icons.close)),
+          ],
+        ),
       ),
       body: Column(
         children: [
@@ -37,10 +58,12 @@ class _CreateMetingsState extends State<CreateMetings> {
             child: Column(
               children: [
                 TextField(
+                  controller: titleController,
                   decoration: InputDecoration(
                     labelText: 'Meeting Title'
                   ),
                     autofocus: true
+
 
                 ),
                 Row(
@@ -99,9 +122,10 @@ class _CreateMetingsState extends State<CreateMetings> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(onPressed: (){
+                  _addUser(widget.userId,widget.recordId, titleController.text,selectedValue);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const MeetingDatePage()),
+                    MaterialPageRoute(builder: (context) => MeetingDatePage(widget.userId,widget.recordId)),
                   );
                 }, child: Text("NEXT"))
               ],
@@ -111,4 +135,28 @@ class _CreateMetingsState extends State<CreateMetings> {
       ),
     );
   }
+  Future<void> _addUser(String userID, String recordID, String title, String type) {
+    CollectionReference users = FirebaseFirestore.instance.collection('users')
+        .doc(userID).collection("records");
+
+    return users
+        .doc(recordID)
+        .update({
+          'Title': title,
+          'Meeting_type': type,
+         })
+        .then((value) => print("Title Added"))
+        .catchError((error) => print("Failed to add tile: $error"));
+  }
+
+  Future<void> _deleteUser(String userID, String recordID) {
+    CollectionReference users = FirebaseFirestore.instance.collection('users')
+        .doc(userID).collection("records");
+    return users
+        .doc(recordID)
+        .delete()
+        .then((value) => print("User Deleted"))
+        .catchError((error) => print("Failed to delete user: $error"));
+  }
+
 }
