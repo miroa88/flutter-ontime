@@ -1,5 +1,7 @@
 //log out page
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'from_scratch.dart';
@@ -12,11 +14,13 @@ class UserInfoPage extends StatefulWidget {
 }
 
 class _UserInfoPageState extends State<UserInfoPage> {
+
   @override
 
   Widget build(BuildContext context) {
     double _width = MediaQuery.of(context).size.width;
     double _height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Profile'),
@@ -50,7 +54,13 @@ class _UserInfoPageState extends State<UserInfoPage> {
                     )
                 ),
                 TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      FirebaseFirestore.instance.collection("test").get().asStream().listen((event) {
+                        event.docs.forEach((element) {print(element.data());});
+                      });
+
+                    },
+
                     child: Row(
                       children: [
                         Icon( // <-- Icon
@@ -69,6 +79,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
                       ],
                     )
                 ),
+
                 SizedBox(
                   height: 40,
                 ),
@@ -103,10 +114,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 ],
               )
           ),
-
-
         ],
       ),
     );
   }
+
+
 }

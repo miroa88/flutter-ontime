@@ -31,6 +31,10 @@ class _SplashPageState extends State<SplashPage> {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text('Splash'),
+        ),
         body: Image.asset(
           'images/splashsplash2x.png',
           width: width,

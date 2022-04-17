@@ -1,6 +1,9 @@
 //navigation bar
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:practice_app/main.dart';
 import 'list_view.dart';
 import 'to_do_page.dart';
 import 'search_meeting-page.dart';
@@ -27,6 +30,7 @@ class _MyNavigationState extends State<MyNavigation> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final screens = [
@@ -34,7 +38,6 @@ class _MyNavigationState extends State<MyNavigation> {
       SearchMeeting(),
       ToDoPage(),
       UserInfoPage(),
-
     ];
     return Scaffold(
       body: screens[_selectedIndex],

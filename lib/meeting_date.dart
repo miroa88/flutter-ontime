@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'meeting_type_page.dart';
 import 'my_navigation_page.dart';
@@ -10,7 +11,8 @@ import 'package:intl/intl.dart';
 class MeetingDatePage extends StatefulWidget {
   final String userId;
   final String recordId;
-  MeetingDatePage(this.userId, this.recordId);
+  String type;
+  MeetingDatePage(this.userId, this.recordId, this.type);
 
   @override
   _MeetingDatePageState createState() => _MeetingDatePageState();
@@ -21,9 +23,14 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
   bool isChecked = false;
   var minController = TextEditingController();
   var hourController = TextEditingController();
-
+  bool _overlapChecked = true;
+  bool _dateChecked = true;
+  bool _timeChecked = true;
+  bool _granted = false;
   TimeOfDay currentTime = TimeOfDay.now();
-  Future<Null> _selectTime(BuildContext context) async{
+  DateTime currentDate = DateTime.now();
+
+  Future<void> _selectTime(BuildContext context) async{
     final TimeOfDay? pickedTime = await showTimePicker(
           context: context,
           initialTime: currentTime);
@@ -33,7 +40,6 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
       });
   }
 
-  DateTime currentDate = DateTime.now();
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
         context: context,
@@ -43,6 +49,7 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
     if (pickedDate != null && pickedDate != currentDate)
       setState(() {
         currentDate = pickedDate;
+        print(currentDate);
       });
   }
 
@@ -84,9 +91,9 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
               title: Text('Meeting Date',
                 style: GoogleFonts.lato(
                     textStyle: Theme.of(context).textTheme.headline4,
-                    fontSize: 23,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    fontStyle: FontStyle.italic,
+                    fontStyle: FontStyle.normal,
                     color: Colors.black
                     ),
                 ),
@@ -102,7 +109,7 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
                   Text(DateFormat.yMMMMd('en_US').format(currentDate)
                       .toString(),
                   style: TextStyle(
-                      fontSize: 30.0
+                      fontSize: 25.0
                   ))
                 ],
               ),
@@ -117,9 +124,9 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
               title: Text('Meeting Start Time',
                 style: GoogleFonts.lato(
                     textStyle: Theme.of(context).textTheme.headline4,
-                    fontSize: 23,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    fontStyle: FontStyle.italic,
+                    fontStyle: FontStyle.normal,
                     color: Colors.black
                 ),
               ),
@@ -136,7 +143,7 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
                   ),
                   Text(currentTime.format(context).toString(),
                     style: TextStyle(
-                        fontSize: 30.0
+                        fontSize: 25.0
                     )
                   )
                 ],
@@ -151,27 +158,33 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
                   Text('Meeting Duration',
                     style: GoogleFonts.lato(
                         textStyle: Theme.of(context).textTheme.headline4,
-                        fontSize: 23,
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        fontStyle: FontStyle.italic,
+                        fontStyle: FontStyle.normal,
                         color: Colors.black
                     ),),
                   Spacer(),
                   Column(
                     children: [
-                      Text("hour"),
+                      // Text("hour"),
                       Container(
                           height:50,
                           width: 58,
                           child: TextField(
-                            controller: hourController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                              ],
+                              controller: hourController,
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 25.0),
-                              decoration: InputDecoration(
-                                   contentPadding: EdgeInsets.zero,
-                                  border: OutlineInputBorder()
-                              )
+                                  fontSize: 23.0),
+                                  decoration: InputDecoration(
+                                    labelText: " hour",
+                                      labelStyle: _timeChecked ? TextStyle(color: Colors.grey) : TextStyle(color: Colors.red),
+                                      contentPadding: EdgeInsets.zero,
+                                      border: OutlineInputBorder()
+                                  )
                           )
                       ),
                     ],
@@ -181,16 +194,21 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
                   ),
                   Column(
                     children: [
-                      Text("min"),
+                      // Text("Min"),
                       Container(
                           height:50,
                           width: 58,
                           child: TextField(
                             controller: minController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                              ],
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 25.0),
+                              style: TextStyle(fontSize: 23.0),
                               decoration: InputDecoration(
+                                labelText: " min",
+                                labelStyle: _timeChecked ? TextStyle(color: Colors.grey) : TextStyle(color: Colors.red),
                                   contentPadding: EdgeInsets.zero,
                                   border: OutlineInputBorder(),
                               )
@@ -201,6 +219,35 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
                 ],
               ),
             ),
+            _dateChecked ?
+            Container() :
+            Center(
+              child: Container(
+                width: width*8/9,
+                child: Text('The meeting should begin and end on the same day!',
+                  style: GoogleFonts.lato(
+                      textStyle: Theme.of(context).textTheme.headline4,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.red
+                  ),),
+              ),
+            ),
+            _overlapChecked ?
+            Container() :
+            Center(
+              child: Container(
+                width: width*8/9,
+                child: Text('The date and time selected will overlap with an existing record!',
+                  style: GoogleFonts.lato(
+                      textStyle: Theme.of(context).textTheme.headline4,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.red
+                  ),),
+              ),
+            ),
+
             SizedBox(
               height: 25,
             ),
@@ -222,7 +269,7 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
                       textStyle: Theme.of(context).textTheme.headline4,
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
-                      fontStyle: FontStyle.italic,
+                      fontStyle: FontStyle.normal,
                       color: Colors.black87
                   ),
                 ),
@@ -232,18 +279,106 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        ElevatedButton(onPressed: () {
-                          print("date: " + currentDate.toString() + " time: " + currentTime.toString());
-                          _addUser(widget.userId, widget.recordId,
-                              DateFormat.yMMMMd('en_US').format(currentDate).toString(),
-                              currentTime.format(context).toString(),
-                              // currentTime.hour.toString() + ":" + currentTime.minute.toString(),
-                              hourController.text+":"+minController.text,
-                              isChecked.toString());
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => MeetingTypePage(widget.userId,widget.recordId)),
-                          );
+                        ElevatedButton(onPressed: () async {
+                          int min = 0;
+                          int hour = 0;
+                          var recordStartDateTime = DateTime(currentDate.year, currentDate.month, currentDate.day, currentTime.hour,
+                              currentTime.minute, 0, 0, 0);
+                          if(hourController.text != ""){
+                            hour = int.parse(hourController.text);
+                          }
+                          if(minController.text != ""){
+                            min = int.parse(minController.text);
+                          }
+                          if(min == 0 && hour == 0)
+                            {
+                              setState(() {
+                                _timeChecked = false;
+                                _granted = false;
+                              });
+                            }
+                          else{
+                            setState(() {
+                              _timeChecked = true;
+                            });
+                          }
+                          if(recordStartDateTime.add(Duration(hours: hour, minutes: min)).day > currentDate.day){
+                            setState(() {
+                              _dateChecked = false;
+                              _granted = false;
+                            });
+                          }
+                          else{
+                            setState(() {
+                              _dateChecked = true;
+                            });
+                          }
+                          if(_dateChecked && _timeChecked)
+                            {
+                              await FirebaseFirestore.instance.collection('users')
+                                  .doc(widget.userId).collection("records")
+                                  .where("Date", isEqualTo: DateFormat.yMMMMd('en_US').format(currentDate).toString())
+                                  .get().then((QuerySnapshot querySnapshot) {
+                                if(querySnapshot.docs.isEmpty){
+                                  print("no overlap");
+                                  setState(() {
+                                    _overlapChecked = true;
+                                  });
+                                }
+                                for (var doc in querySnapshot.docs) {
+                                  if(doc['Record_ID'] == widget.recordId)
+                                      continue;
+                                  DateTime docStartDateTime = doc["date_time"].toDate();
+                                  final duration = doc["Duration"].split(':');
+                                  if(duration[0] == "")
+                                    duration[0] = '0';
+                                  if(duration[1] == "")
+                                    duration[1] = '0';
+                                  print(duration[0]);
+                                  var docEndDateTime = docStartDateTime.add(
+                                      Duration( hours: int.parse(duration[0]),minutes: int.parse(duration[1]))
+                                  );
+                                  var recordEndDateTime = recordStartDateTime.add(Duration(hours: hour, minutes: min));
+                                  if(recordEndDateTime.isBefore(docStartDateTime) ||
+                                      recordStartDateTime.isAfter(docEndDateTime))
+                                  {
+                                    print("no overlap");
+                                    if(!_overlapChecked)
+                                      {
+                                        setState(() {
+                                          _overlapChecked = true;
+                                        });
+                                      }
+                                  }
+                                  else
+                                  {
+                                    print("overlap");
+                                    setState(() {
+                                      _overlapChecked = false;
+                                    });
+                                    _granted = false;
+                                    break;
+                                  }
+                                }
+                              });
+                            }
+                          if(_overlapChecked && _dateChecked && _timeChecked)
+                            _granted = true;
+                          if(_granted)
+                            {
+                              _addUser(widget.userId, widget.recordId,
+                                  DateFormat.yMMMMd('en_US').format(currentDate).toString(),
+                                  currentTime.format(context).toString(),
+                                  // currentTime.hour.toString() + ":" + currentTime.minute.toString(),
+                                  (hourController.text == "" ? '0' : hourController.text ) + ":" +
+                                      (minController.text == "" ? '0' : minController.text ),
+                                  isChecked.toString(), recordStartDateTime);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => MeetingTypePage(widget.userId,widget.recordId,widget.type)),
+
+                              );
+                            }
                         },
                           child: Text("NEXT"),
                           style: ElevatedButton.styleFrom(
@@ -262,7 +397,7 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
   }
 
   Future<void> _addUser(String userID, String recordID, String date,
-      String sTime, String duration, String isChecked) {
+      String sTime, String duration, String isChecked, DateTime recordDT) {
     CollectionReference users = FirebaseFirestore.instance.collection('users')
         .doc(userID).collection("records");
 
@@ -272,7 +407,8 @@ class _MeetingDatePageState extends State<MeetingDatePage> {
           'Date': date,
           'Start_Time': sTime,
           'Duration' : duration,
-          'Recurring_Meeting' : isChecked
+          'Recurring_Meeting' : isChecked,
+          'date_time' : Timestamp.fromDate(recordDT)
     })
         .then((value) => print("Date Added"))
         .catchError((error) => print("Failed to add date: $error"));

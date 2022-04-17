@@ -43,6 +43,13 @@ dependencies:
   intl: ^0.17.0
   clipboard: ^0.1.3
   deeply: ^1.2.0+1
+  geopoint: ^1.0.0
+  latlong2: ^0.8.1
+  geoflutterfire: ^3.0.3
+  firebase_messaging: ^11.2.13
+  flutter_local_notifications: ^9.4.0
+  timezone: ^0.8.0
+  location: ^4.3.0
 
 
 

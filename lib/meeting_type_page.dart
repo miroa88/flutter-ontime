@@ -3,6 +3,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart';
 import 'my_navigation_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,7 +14,19 @@ import 'package:clipboard/clipboard.dart';
 class MeetingTypePage extends StatefulWidget {
   final String userId;
   final String recordId;
-  MeetingTypePage(this.userId, this.recordId);
+  String type;
+  bool isZoom = false;
+  bool isPhone = false;
+  bool isInPerson = false;
+  MeetingTypePage(this.userId, this.recordId, this.type)
+  {
+    if(type == 'In person')
+      isInPerson = true;
+    else if(type == 'Phone call')
+      isPhone = true;
+    else
+      isZoom = true;
+  }
 
   @override
   _MeetingTypePageState createState() => _MeetingTypePageState();
@@ -23,6 +37,64 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
   var passController = TextEditingController();
   var phoneNumController = TextEditingController();
   var addressController = TextEditingController();
+  bool _isAddressEmpty = false;
+  bool _granted = false;
+  bool _isPhoneEmpty = false;
+  bool _isLinkEmpty = false;
+  bool _isPassEmpty = false;
+
+  late AndroidNotificationChannel channel;
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  @override
+  void initState() {
+    super.initState();
+    initLocalNotification();
+    // FirebaseMessaging.instance.unsubscribeFromTopic("event");
+  }
+
+  void initLocalNotification() async {
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin().initialize(const InitializationSettings(
+      android: AndroidInitializationSettings('ontime1'),
+      iOS: IOSInitializationSettings(),
+    ));
+
+    channel = const AndroidNotificationChannel(
+      'high_importance_channel', // id
+      'High Importance Notifications', // title
+
+      importance: Importance.high,
+      enableVibration: true,
+    );
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+  }
+
+  Future _scheduleNotification(Duration dur, int id, String title, String body) async{
+    var location = Location('UTC', [minTime], [0], [TimeZone.UTC]);
+    flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        TZDateTime.now(location).add(dur),
+        NotificationDetails(
+            android: AndroidNotificationDetails(
+              channel.id,
+              channel.name,
+              importance: Importance.high,
+              icon: 'ontime1',
+            )
+        ),
+        androidAllowWhileIdle: true,
+        uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime);
+    print("scheduled");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,72 +126,101 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
       ),
       body: ListView(
         children: [
+          widget.isZoom ?
           Container(
-            margin: EdgeInsets.only(left:10, right: 10),
+            margin: EdgeInsets.only(left:10, right: 10, bottom: 5,top :20),
             width: _width,
-            height: _height/9,
+            height: _height/7,
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      flex: 82,
-                      child: TextField(
-                          controller: linkController,
-                          decoration: InputDecoration(
-                              labelText: 'Meeting Link or ID'
-                          ),
-                          autofocus: true
-                      ),
-                    ),
-                    //Spacer(),
-                    Expanded(
-                      flex: 18,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          textStyle: const TextStyle(fontSize: 14),
-                        ),
-                        onPressed: () {
-                          FlutterClipboard.paste().then((value) {
-                            // Do what ever you want with the value.
-                            setState(() {
-                              linkController.text = value;
-                            });
-                          });
-                        },
-                        child: const Text('PASTE'),
-                      ),
-                    ),
-                  ],
-                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      margin: EdgeInsets.only(top: 5),
-                      child: Text("Enter meeting link or ID",
+                      margin: EdgeInsets.only(top: 5, left: 5, bottom: 10 ),
+                      child: Text("Enter Meeting link or ID",
                         style: GoogleFonts.lato(
                             textStyle: Theme.of(context).textTheme.headline4,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            fontStyle: FontStyle.italic,
+                            fontStyle: FontStyle.normal,
                             color: Colors.black
                         ),
                       ),
                     ),
                   ],
                 ),
-
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      flex: 82,
+                      child: TextField(
+                          enabled: widget.isZoom,
+                          controller: linkController,
+                          decoration: InputDecoration(
+                              hintText: 'Meeting Link or ID',
+                              hintStyle: _isLinkEmpty ? TextStyle( color: Colors.red) :
+                              TextStyle( color: Colors.grey) ,
+                              contentPadding: const EdgeInsets.all(15),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(color: Colors.black),)
+                          ),
+                          autofocus: true
+                      ),
+                    ),
+                    Expanded(
+                      flex: 18,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          textStyle: const TextStyle(fontSize: 14),
+                        ),
+                        onPressed: widget.isZoom  ?
+                            () {
+                          FlutterClipboard.paste().then((value) {
+                            // Do what ever you want with the value.
+                            setState(() {
+                              linkController.text = value;
+                            });
+                          });
+                        } : null,
+                        child: const Text('PASTE',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             )
-          ),
+          ) : Container(),
+          widget.isZoom ?
           Container(
-              margin: EdgeInsets.only(left:10, right: 10),
+              margin: EdgeInsets.only(left:10, right: 10, top: 10),
               width: _width,
-              height: _height/9,
+              height: _height/7,
               child: Column(
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(top: 5, left: 5, bottom: 10),
+                        child: Text("Enter Meeting Password",
+                          style: GoogleFonts.lato(
+                              textStyle: Theme.of(context).textTheme.headline4,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FontStyle.normal,
+                              color: Colors.black
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -127,8 +228,15 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                         flex: 82,
                         child: TextField(
                             controller: passController,
+                            obscureText: true,
                             decoration: InputDecoration(
-                                labelText: 'Meeting Password'
+                                hintText: 'Meeting Password',
+                                hintStyle: _isPassEmpty ? TextStyle( color: Colors.red) :
+                                TextStyle( color: Colors.grey) ,
+                                contentPadding: const EdgeInsets.all(15),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(color: Colors.black),)
                             ),
                             autofocus: true
                         ),
@@ -148,37 +256,42 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                               });
                             });
                           },
-                          child: const Text('PASTE'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(top: 5),
-                        child: Text("Enter meeting password",
-                          style: GoogleFonts.lato(
-                              textStyle: Theme.of(context).textTheme.headline4,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.black
-                          ),
+                          child: const Text('PASTE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),),
                         ),
                       ),
                     ],
                   ),
                 ],
               )
-          ),
+          ) : Container(),
+          widget.isPhone ?
           Container(
-              margin: EdgeInsets.only(left:10, right: 10, bottom: 5),
+              margin: EdgeInsets.only(left:10, right: 10, bottom: 5,top :20),
               width: _width,
-              height: _height/9,
+              height: _height/7,
               child: Column(
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(top: 5, left: 5,bottom: 10),
+                        child: Text("Enter Phone Number",
+                          style: GoogleFonts.lato(
+                              textStyle: Theme.of(context).textTheme.headline4,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FontStyle.normal,
+                              color: Colors.black
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -187,7 +300,13 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                         child: TextField(
                             controller: phoneNumController,
                             decoration: InputDecoration(
-                                labelText: 'Phone Meeting Number'
+                                hintText: 'Meeting Phone Number',
+                                hintStyle: _isPhoneEmpty ? TextStyle( color: Colors.red) :
+                                TextStyle( color: Colors.grey) ,
+                                contentPadding: const EdgeInsets.all(15),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(color: Colors.black),)
                             ),
                             autofocus: true
                         ),
@@ -197,6 +316,7 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                         flex: 18,
                         child: TextButton(
                           style: TextButton.styleFrom(
+
                             textStyle: const TextStyle(fontSize: 14),
                           ),
                           onPressed: () {
@@ -207,37 +327,42 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                               });
                             });
                           },
-                          child: const Text('PASTE'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(top: 5),
-                        child: Text("Enter Phone number",
-                          style: GoogleFonts.lato(
-                              textStyle: Theme.of(context).textTheme.headline4,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.black
-                          ),
+                          child: const Text('PASTE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),),
                         ),
                       ),
                     ],
                   ),
                 ],
               )
-          ),
+          ) : Container(),
+          widget.isInPerson ?
           Container(
-              margin: EdgeInsets.only(left:10, right: 10, bottom: 5),
+              margin: EdgeInsets.only(left:10, right: 10, bottom: 5,top: 20),
               width: _width,
-              height: _height/9,
+              height: _height/7,
               child: Column(
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(top: 5,left: 5,bottom: 10),
+                        child: Text("Enter Meeting Address",
+                          style: GoogleFonts.lato(
+                              textStyle: Theme.of(context).textTheme.headline4,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FontStyle.normal,
+                              color: Colors.black
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -246,7 +371,13 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                         child: TextField(
                             controller: addressController,
                             decoration: InputDecoration(
-                                labelText: 'Meeting Address'
+                                hintText: 'Meeting Address',
+                                hintStyle: _isAddressEmpty ? TextStyle( color: Colors.red) :
+                                  TextStyle( color: Colors.grey) ,
+                                contentPadding: const EdgeInsets.all(15),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(color: Colors.black),)
                             ),
                             autofocus: true
                         ),
@@ -266,44 +397,69 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                               });
                             });
                           },
-                          child: const Text('PASTE'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(top: 5),
-                        child: Text("Enter Meeting Address",
-                          style: GoogleFonts.lato(
-                              textStyle: Theme.of(context).textTheme.headline4,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.black
-                          ),
+                          child: const Text('PASTE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),),
                         ),
                       ),
                     ],
                   ),
                 ],
               )
-          ),
+          ) : Container(),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Container(
-                margin: EdgeInsets.only(right: 20),
+                margin: EdgeInsets.only(right: 20,top: 50),
                 child: ElevatedButton(
                   onPressed: () {
-                    _addUser(widget.userId, widget.recordId, linkController.text, passController.text,
-                        phoneNumController.text, addressController.text);
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => MyNavigation(widget.userId)),
-                          (Route<dynamic> route) => false,
+                    if(addressController.text == "") {
+                      setState(() {
+                        _isAddressEmpty = true;
+                      });
+                    } else {_isAddressEmpty = false;}
+
+                    if(phoneNumController.text == "") {
+                      setState(() {
+                        _isPhoneEmpty= true;
+                      });
+                    } else {_isPhoneEmpty = false;}
+
+                    if(linkController.text == "") {
+                      setState(() {
+                        _isLinkEmpty = true;
+                      });
+                    } else {_isLinkEmpty = false;}
+
+                    if(passController.text == "") {
+                      setState(() {
+                        _isPassEmpty = true;
+                      });
+                    } else {_isPassEmpty = false;}
+
+                    if(!_isAddressEmpty || !_isPhoneEmpty || (!_isPassEmpty && !_isLinkEmpty))
+                      _granted = true;
+
+                    if(_granted && false)
+                      {
+                        _addUser(widget.userId, widget.recordId, linkController.text, passController.text,
+                            phoneNumController.text, addressController.text);
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => MyNavigation(widget.userId)),
+                              (Route<dynamic> route) => false,
+                        );
+                      }
+                    int id = DateTime.now().millisecondsSinceEpoch;
+                    _scheduleNotification(
+                        Duration(seconds: 5),
+                        1234,
+                        widget.type,
+                        "Meeting will start on"
                     );
                   },
                   child: const Text('CREATE'),

@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import 'contact_info_detail.dart';
+import 'package:intl/intl.dart';
 
 class SearchMeeting extends StatefulWidget {
   const SearchMeeting({Key? key}) : super(key: key);
@@ -11,14 +12,22 @@ class SearchMeeting extends StatefulWidget {
 }
 
 class _SearchMeetingState extends State<SearchMeeting> {
+  final controller = TextEditingController();
+  String variable = "Title";
+  String controlStr = "";
   @override
 
   Widget build(BuildContext context) {
+    Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance.collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid).collection("records")
+        .where(variable, isEqualTo: controlStr)
+        .snapshots();
 
-    List<String> items = [
-      'CS2500',
-      'CS6533',
-      'CS2144',
+    List<String> types = [
+      'In person',
+      'Zoom',
+      'Google Meet',
+      'Phone call'
     ];
 
     double width = MediaQuery.of(context).size.width;
@@ -37,9 +46,24 @@ class _SearchMeetingState extends State<SearchMeeting> {
               width: width - 20,
               height: (width - 20) / 6,
               child: TextField(
+                controller: controller,
                   decoration: InputDecoration(
-                      labelText: 'Search Meeting Title, Type and Date',
-                    suffixIcon: IconButton(icon: Icon(Icons.search), onPressed: () {  },
+                      labelText: 'Search Meeting Title and Type',
+                    suffixIcon: IconButton(icon: Icon(Icons.search), onPressed: () {
+                      if(types.contains(controller.text))
+                        {
+                          setState(() {
+                            variable = 'Meeting_type';
+                            controlStr = controller.text;
+                          });
+                        }
+                      else{
+                        setState(() {
+                          variable = 'Title';
+                          controlStr = controller.text;
+                        });
+                      }
+                    },
 
                     )
 
@@ -52,51 +76,56 @@ class _SearchMeetingState extends State<SearchMeeting> {
           SizedBox(
             height: width/10,
           ),
-          Center(
-            child: Text("Recent Searches",
-              style: GoogleFonts.lato(
-                  textStyle: Theme.of(context).textTheme.headline4,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  fontStyle: FontStyle.normal,
-                  color: Colors.black
-              ),
-            ),
-          ),
           SizedBox(
             height: width/20,
           ),
           Container(
             child: Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    child: ListTile(
-                      onTap: () {
-                        Navigator.push(context,MaterialPageRoute(builder: (context) => ContactInfoDetail(items[index])));
-                      },
-                      title: Container(
-                          margin: EdgeInsets.only(top: 5, bottom: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Column(
-                                children: [
-                                  Text(items[index]),
-                                  CircleAvatar(
-                                    backgroundImage: NetworkImage("https://companiesmarketcap.com/img/company-logos/512/ZM.png"),
-                                    //https://linkgatesconsult.com/wp-content/uploads/2020/06/logo-person-user-person-icon-800x675.jpg
-                                  ),
-                                ],
-                              ),
-                            ],
-                          )),
-                      //dense: true,
-                      // isThreeLine: true,
-                    ),
-                  );
-                },
+              child: Container(
+                child: StreamBuilder<QuerySnapshot>(
+                    stream: _usersStream,
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Something went wrong');
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text("Loading");
+                      }
+
+                      return ListView(
+                        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                          Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+                          return ListTile(
+                            onTap: () {},
+                            title: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundImage: AssetImage("images/zoom.png"),
+                                ),
+                                SizedBox(width: 5,),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(data['Title']),
+                                    Text(data['Date']),
+                                    Row(
+                                      children: [
+                                        Text(data['Start_Time']),
+                                        Text(" Duration: ${data['Duration']}"),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                            // subtitle: Text(data['Date']),
+                          );
+                        }).toList(),
+                      );
+                    }
+                ),
               ),
             ),
           )

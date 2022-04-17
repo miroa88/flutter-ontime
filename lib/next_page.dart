@@ -1,6 +1,8 @@
 //not related to project
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:practice_app/third_page.dart';
+import 'package:timezone/timezone.dart';
 import 'dart:math';
 import 'third_page.dart';
 import 'user_profile.dart';
@@ -8,7 +10,9 @@ import 'user_profile.dart';
 
 
 class MyNextPage extends StatefulWidget {
-  MyNextPage({Key? key}) : super(key: key);
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  AndroidNotificationChannel channel;
+  MyNextPage(this.flutterLocalNotificationsPlugin, this.channel);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -29,6 +33,27 @@ class _MyNextPageState extends State<MyNextPage> {
   Random random = Random();
   int _randomNumber = 0;
   String flag = "";
+
+  Future _scheduleNotification(Duration dur) async{
+    var location = Location('UTC', [minTime], [0], [TimeZone.UTC]);
+    widget.flutterLocalNotificationsPlugin.zonedSchedule(
+        1234,
+        "test",
+        "scheduled notification",
+        TZDateTime.now(location).add(dur),
+        NotificationDetails(
+            android: AndroidNotificationDetails(
+              widget.channel.id,
+              widget.channel.name,
+              importance: Importance.high,
+              icon: 'ic_launcher',
+            )
+        ),
+        androidAllowWhileIdle: true,
+        uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime);
+    print("scheduled");
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -122,6 +147,7 @@ class _MyNextPageState extends State<MyNextPage> {
               onPressed:() {
                 _generateRandomNumber();
                 _incrementCounter();
+                _scheduleNotification(Duration(seconds: 5));
 
               },
             ),

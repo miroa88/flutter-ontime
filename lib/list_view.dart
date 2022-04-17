@@ -2,12 +2,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:practice_app/list_adder.dart';
-import 'contact_info_detail.dart';
 import 'event_information.dart';
+import 'create_meetings.dart';
+import 'main.dart';
 import 'meeting_date.dart';
-import 'creatieg_ meetings.dart';
+
 import 'package:uuid/uuid.dart';
 import 'user_events.dart';
 
@@ -26,10 +29,47 @@ class _MyListViewState extends State<MyListView> {
   final phoneController = TextEditingController();
   final typeController = TextEditingController();
   final linkController = TextEditingController();
+
+  late AndroidNotificationChannel channel;
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  @override
+  void initState() {
+    super.initState();
+    initLocalNotification();
+  }
+
+  void initLocalNotification() async {
+    var flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin().initialize(const InitializationSettings(
+      android: AndroidInitializationSettings('ontime1'),
+      iOS: IOSInitializationSettings(),
+    ));
+
+    channel = const AndroidNotificationChannel(
+      'high_importance_channel', // id
+      'High Importance Notifications', // title
+
+      importance: Importance.high,
+      enableVibration: true,
+    );
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+  }
+
+  Future _cancelNotification(int id) async{
+    await flutterLocalNotificationsPlugin.cancel(id);
+    print("canceled");
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance.collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid).collection("records").snapshots();
+        .doc(FirebaseAuth.instance.currentUser!.uid).collection("records").orderBy('date_time').snapshots();
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -37,17 +77,9 @@ class _MyListViewState extends State<MyListView> {
             Row(
               children: [
                 const Text('Meetings'),
-    //             IconButton(onPressed:(){
-    //               final user = UserEvents(FirebaseAuth.instance.currentUser!.uid);
-    //               user.addRecord(Record('3333333333','March 30, 2022', 'Cordero',' this.pass',
-    // '1:33', "hello miro", "zoom", 'false', 'this.link',
-    // '8785553', '12:45'));
-    //               print(user.entries.first.isRecurring);
-    //               print(user.entries.first.startTime);
-    //               print(user.entries.first.duration);
-    //               print(user.entries.first.endTime);
-    //
-    //             }, icon: Icon(Icons.javascript))
+                // IconButton(onPressed:(){
+                //   showNotification();
+                // }, icon: Icon(Icons.javascript))
               ],
             ),
           ],
@@ -73,8 +105,7 @@ class _MyListViewState extends State<MyListView> {
                      title: Row(
                        children: [
                          CircleAvatar(
-                           backgroundImage: NetworkImage('https://cdn.freelogovectors.net/wp-content/uploads/2020/10/zoom-icon-logo-768x767.png'),
-                           //https://linkgatesconsult.com/wp-content/uploads/2020/06/logo-person-user-person-icon-800x675.jpg
+                           backgroundImage: AssetImage("images/zoom.png"),
                          ),
                          SizedBox(width: 5,),
                          Column(
@@ -83,6 +114,12 @@ class _MyListViewState extends State<MyListView> {
                            children: [
                              Text(data['Title']),
                              Text(data['Date']),
+                             Row(
+                               children: [
+                                 Text(data['Start_Time']),
+                                 Text(" Duration: ${data['Duration']}"),
+                               ],
+                             )
                            ],
                          ),
                          Spacer(),
@@ -103,11 +140,11 @@ class _MyListViewState extends State<MyListView> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         onPressed: () {
-          var revordId = Uuid().v4();
-          _addUser(widget.userId, revordId);
+          var recordId = Uuid().v4();
+          _addUser(widget.userId, recordId);
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => CreateMetings(widget.userId, revordId)),
+            MaterialPageRoute(builder: (context) => CreateMeetings(widget.userId, recordId)),
                 (Route<dynamic> route) => false,
           );
         },

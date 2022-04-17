@@ -1,7 +1,10 @@
 //to do
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calendar_timeline/calendar_timeline.dart';
+import 'package:intl/intl.dart';
 
 class ToDoPage extends StatefulWidget {
   const ToDoPage({Key? key}) : super(key: key);
@@ -24,12 +27,11 @@ class _ToDoPageState extends State<ToDoPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> items = [
-      'CS2500',
-      'CS2144',
-      'CS2500',
-      'CS2144',
-    ];
+    List<String> items = ["miro"];
+    final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance.collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid).collection("records")
+        .where('Date', isEqualTo: DateFormat.yMMMMd('en_US').format(_selectedDate).toString())
+        .snapshots();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Schedule'),
@@ -53,8 +55,10 @@ class _ToDoPageState extends State<ToDoPage> {
                       onDateSelected: (date) {
                         setState(() {
                           _selectedDate = date!;
-                          print(_selectedDate);
                         });
+
+
+                        print(_selectedDate);
                       },
                       leftMargin: 20,
                       monthColor: Colors.black87,
@@ -84,33 +88,52 @@ class _ToDoPageState extends State<ToDoPage> {
           ),
           Expanded(
               flex: 75,
-              child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return Card(
-                child: ListTile(
-                  title: Container(
-                    margin: EdgeInsets.only(top: 5, bottom: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Column(
-                            children: [
-                              Text(items[index]),
-                              CircleAvatar(
-                                backgroundImage: NetworkImage("https://companiesmarketcap.com/img/company-logos/512/ZM.png"),
-                                //https://linkgatesconsult.com/wp-content/uploads/2020/06/logo-person-user-person-icon-800x675.jpg
-                              ),
-                            ],
-                          ),
-                        ],
-                      )),
-                  //dense: true,
-                  // isThreeLine: true,
+              child: Container(
+                child: StreamBuilder<QuerySnapshot>(
+                    stream: _usersStream,
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Something went wrong');
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text("Loading");
+                      }
+
+                      return ListView(
+                        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                          Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+                          return ListTile(
+                            onTap: () {},
+                            title: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundImage: AssetImage("images/zoom.png"),
+                                ),
+                                SizedBox(width: 5,),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(data['Title']),
+                                    Text(data['Date']),
+                                    Row(
+                                      children: [
+                                        Text(data['Start_Time']),
+                                        Text(" Duration: ${data['Duration']}"),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                            // subtitle: Text(data['Date']),
+                          );
+                        }).toList(),
+                      );
+                    }
                 ),
-              );
-            },
-          ),
+              ),
               
               // ListView(
               //   children: const <Widget>[
