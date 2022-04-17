@@ -30,6 +30,7 @@ class Record {
     }
     else {
       this.isRecurring = true;
+      print("hello");
     }
   }
 }

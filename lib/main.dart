@@ -12,8 +12,6 @@ import 'package:http/http.dart' as http;
 import 'package:timezone/timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
-import 'next_page.dart';
-
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 

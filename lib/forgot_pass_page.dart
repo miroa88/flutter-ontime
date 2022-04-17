@@ -94,16 +94,10 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
                             ),
                             SizedBox(
                               height: (width - 10) / 6,
-
                             )
-
-
-
                           ],
                         )
                     ),
-
-
                  Center(
                       child: Container(
                           width: width/3,
@@ -111,11 +105,8 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
 
                       ),
                     )
-
               ],
             )
-
-
     );
   }
 

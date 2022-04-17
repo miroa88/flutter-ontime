@@ -5,7 +5,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:practice_app/list_adder.dart';
 import 'event_information.dart';
 import 'create_meetings.dart';
 import 'main.dart';

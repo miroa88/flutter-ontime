@@ -128,74 +128,74 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
         children: [
           widget.isZoom ?
           Container(
-            margin: EdgeInsets.only(left:10, right: 10, bottom: 5,top :20),
-            width: _width,
-            height: _height/7,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: EdgeInsets.only(top: 5, left: 5, bottom: 10 ),
-                      child: Text("Enter Meeting link or ID",
-                        style: GoogleFonts.lato(
-                            textStyle: Theme.of(context).textTheme.headline4,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            fontStyle: FontStyle.normal,
-                            color: Colors.black
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      flex: 82,
-                      child: TextField(
-                          enabled: widget.isZoom,
-                          controller: linkController,
-                          decoration: InputDecoration(
-                              hintText: 'Meeting Link or ID',
-                              hintStyle: _isLinkEmpty ? TextStyle( color: Colors.red) :
-                              TextStyle( color: Colors.grey) ,
-                              contentPadding: const EdgeInsets.all(15),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide(color: Colors.black),)
+              margin: EdgeInsets.only(left:10, right: 10, bottom: 5,top :20),
+              width: _width,
+              height: _height/7,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(top: 5, left: 5, bottom: 10 ),
+                        child: Text("Enter Meeting link or ID",
+                          style: GoogleFonts.lato(
+                              textStyle: Theme.of(context).textTheme.headline4,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FontStyle.normal,
+                              color: Colors.black
                           ),
-                          autofocus: true
-                      ),
-                    ),
-                    Expanded(
-                      flex: 18,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          textStyle: const TextStyle(fontSize: 14),
                         ),
-                        onPressed: widget.isZoom  ?
-                            () {
-                          FlutterClipboard.paste().then((value) {
-                            // Do what ever you want with the value.
-                            setState(() {
-                              linkController.text = value;
-                            });
-                          });
-                        } : null,
-                        child: const Text('PASTE',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            )
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 82,
+                        child: TextField(
+                            enabled: widget.isZoom,
+                            controller: linkController,
+                            decoration: InputDecoration(
+                                hintText: 'Meeting Link or ID',
+                                hintStyle: _isLinkEmpty ? TextStyle( color: Colors.red) :
+                                TextStyle( color: Colors.grey) ,
+                                contentPadding: const EdgeInsets.all(15),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(color: Colors.black),)
+                            ),
+                            autofocus: true
+                        ),
+                      ),
+                      Expanded(
+                        flex: 18,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            textStyle: const TextStyle(fontSize: 14),
+                          ),
+                          onPressed: widget.isZoom  ?
+                              () {
+                            FlutterClipboard.paste().then((value) {
+                              // Do what ever you want with the value.
+                              setState(() {
+                                linkController.text = value;
+                              });
+                            });
+                          } : null,
+                          child: const Text('PASTE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
           ) : Container(),
           widget.isZoom ?
           Container(
@@ -305,8 +305,8 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                                 TextStyle( color: Colors.grey) ,
                                 contentPadding: const EdgeInsets.all(15),
                                 border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide(color: Colors.black),)
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(color: Colors.black),)
                             ),
                             autofocus: true
                         ),
@@ -373,7 +373,7 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                             decoration: InputDecoration(
                                 hintText: 'Meeting Address',
                                 hintStyle: _isAddressEmpty ? TextStyle( color: Colors.red) :
-                                  TextStyle( color: Colors.grey) ,
+                                TextStyle( color: Colors.grey) ,
                                 contentPadding: const EdgeInsets.all(15),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30),
@@ -445,15 +445,15 @@ class _MeetingTypePageState extends State<MeetingTypePage> {
                       _granted = true;
 
                     if(_granted && false)
-                      {
-                        _addUser(widget.userId, widget.recordId, linkController.text, passController.text,
-                            phoneNumController.text, addressController.text);
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => MyNavigation(widget.userId)),
-                              (Route<dynamic> route) => false,
-                        );
-                      }
+                    {
+                      _addUser(widget.userId, widget.recordId, linkController.text, passController.text,
+                          phoneNumController.text, addressController.text);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => MyNavigation(widget.userId)),
+                            (Route<dynamic> route) => false,
+                      );
+                    }
                     int id = DateTime.now().millisecondsSinceEpoch;
                     _scheduleNotification(
                         Duration(seconds: 5),

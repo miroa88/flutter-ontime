@@ -117,6 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                             ),
                             onPressed: ()  {
+                              print("");
                                 FirebaseAuth.instance.createUserWithEmailAndPassword(
                                     email: emailController.text,
                                     password: passController.text,

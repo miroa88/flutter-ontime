@@ -12,5 +12,6 @@ class UserEvents {
 
   void addRecord(Record newRecord ){
     entries.add(newRecord);
+    print("");
     }
 }

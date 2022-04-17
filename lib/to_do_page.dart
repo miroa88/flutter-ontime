@@ -54,6 +54,7 @@ class _ToDoPageState extends State<ToDoPage> {
                       lastDate: DateTime.now().add(Duration(days: 1000)),
                       onDateSelected: (date) {
                         setState(() {
+                          print("");
                           _selectedDate = date!;
                         });
 

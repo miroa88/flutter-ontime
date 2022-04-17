@@ -3,7 +3,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'user_profile.dart';
 import 'main.dart';
 import 'list_view.dart';
 import 'forgot_pass_page.dart';
@@ -108,6 +107,7 @@ class _FromScratchPageState extends State<FromScratchPage> {
 
                         ),
                         onPressed: () async{
+                          print("hello");
                           await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passController.text)
                               .then((value){
                             print("sgined in seccessfully");

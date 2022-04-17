@@ -26,6 +26,7 @@ class _MyNavigationState extends State<MyNavigation> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      print("hello");
     }
     );
   }
@@ -71,6 +72,7 @@ class _MyNavigationState extends State<MyNavigation> {
         backgroundColor: Colors.blue,
         //iconSize: ,
         //showUnselectedLabels: false,
+
 
       ),
 

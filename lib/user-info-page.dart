@@ -89,6 +89,7 @@ class _UserInfoPageState extends State<UserInfoPage> {
           ),
           TextButton(
               onPressed: () async{
+                print("");
                 await FirebaseAuth.instance.signOut();
                 Navigator.pushAndRemoveUntil(
                   context,

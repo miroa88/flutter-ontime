@@ -53,6 +53,7 @@ class _SearchMeetingState extends State<SearchMeeting> {
                       if(types.contains(controller.text))
                         {
                           setState(() {
+                            print("");
                             variable = 'Meeting_type';
                             controlStr = controller.text;
                           });
