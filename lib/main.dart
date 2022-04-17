@@ -6,12 +6,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'my_navigation_page.dart';
-import 'from_scratch.dart';
 import 'package:http/http.dart' as http;
 import 'package:timezone/timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
-
+import 'front_end/navigation_page.dart';
+import 'front_end/register_login/login_page.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
@@ -293,10 +292,10 @@ class _MyAppState extends State<MyApp> {
             else if(snapshot.hasData){
               return
                 // MyNextPage(flutterLocalNotificationsPlugin, channel);
-                MyNavigation(FirebaseAuth.instance.currentUser!.uid,);
+                NavigationScreen(FirebaseAuth.instance.currentUser!.uid,);
             }
             else{
-              return FromScratchPage();
+              return LoginPage();
             }
           }
       ),
