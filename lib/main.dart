@@ -17,6 +17,7 @@ import '/back_end/notification_controller.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'front_end/register_login/varify_email.dart';
+import 'package:change_app_package_name/change_app_package_name.dart';
 
 // Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 //

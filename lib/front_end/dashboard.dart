@@ -158,61 +158,54 @@ class _DashboardState extends State<Dashboard> {
                   ],
                 );
               }
-
-              return Card(
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(color: Colors.white70, width: 1),
-                    borderRadius: BorderRadius.circular(10),
-              ),
-              child: ListView(
+              return ListView(
                 children: snapshot.data!.docs.map((DocumentSnapshot document) {
                   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
                   return Container(
-                      margin: EdgeInsets.only(right: 10, left: 10),
-                      child: Card(
+                    margin: EdgeInsets.only(right: 10, left: 10),
+                    child: Card(
                         color: (data['date_time'].toDate().add(Duration(minutes: (data['duration-min'])))
                             .compareTo(DateTime.now()) < 0 ) ? Colors.redAccent:
                         (data['date_time'].toDate().compareTo(DateTime.now()) > 0) ? Colors.yellowAccent : Colors.greenAccent,
-                      //yellow: future meetings, green: in process meetings, red: past meetings
+                        //yellow: future meetings, green: in process meetings, red: past meetings
                         shape: RoundedRectangleBorder(
                           side: BorderSide(color: Colors.white70, width: 1),
                           borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: ListTile(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MeetingSpecifications(data['Record_ID'])),
-                        );
-                      },
-                      leading: CircleAvatar(
-                        radius: 25,
-                        backgroundColor: Colors.white,
-                        backgroundImage: AssetImage(map.values.elementAt(indexOfMap(data['Meeting_type']))),
-                      ),
-                      title: Row(
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => MeetingSpecifications(data['Record_ID'])),
+                            );
+                          },
+                          leading: CircleAvatar(
+                            radius: 25,
+                            backgroundColor: Colors.white,
+                            backgroundImage: AssetImage(map.values.elementAt(indexOfMap(data['Meeting_type']))),
+                          ),
+                          title: Row(
                             children: [
-                              Text(data['Title']),
-                              SizedBox(height: 5,),
-                              Text("${data['Date']}  ${data['Start_Time']}"),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(data['Title']),
+                                  SizedBox(height: 5,),
+                                  Text("${data['Date']}  ${data['Start_Time']}"),
+                                ],
+                              ),
+                              Spacer(),
+                              IconButton(onPressed: () {
+                                _deleteUser(widget.userId, data['Record_ID']);
+                                NotificationController.cancelNotification(data['Notification_ID']);
+                              }, icon: Icon(Icons.delete))
                             ],
                           ),
-                          Spacer(),
-                          IconButton(onPressed: () {
-                            _deleteUser(widget.userId, data['Record_ID']);
-                            NotificationController.cancelNotification(data['Notification_ID']);
-                          }, icon: Icon(Icons.delete))
-                        ],
-                      ),
-
-                    )),
+                        )),
                   );
                 }).toList(),
-              ));
+              );
             }
         ),
       ),

@@ -41,8 +41,8 @@ class _LoginPageState extends State<LoginPage> {
                     fontSize: 40),
               ),
               SizedBox(height: 20,),
-              Image.asset('images/splashsplash2x.png',
-                  scale: 1.6),
+              Image.asset('images/ontime4x.png',
+                  scale: 1.9),
               SizedBox(height: 60,),
 
               Container(

@@ -110,7 +110,8 @@ class _PasswordRecoveryPageState extends State<PasswordRecoveryPage> {
             Center(
               child: Container(
                   width: width/3,
-                  child:Image.asset("images/splashsplash2x.png")
+                  child:Image.asset("images/ontime4x.png",
+                  scale: 1.8,)
 
               ),
             )

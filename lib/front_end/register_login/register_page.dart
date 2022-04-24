@@ -263,8 +263,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                   ),
                 ),
-                Image.asset('images/splashsplash2x.png',
-                    scale: 2),
+                SizedBox(height: 10,),
+                Image.asset("images/ontime4x.png",
+                  scale: 3,)
               ],
             ),
           ),
