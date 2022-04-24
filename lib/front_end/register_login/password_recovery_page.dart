@@ -66,33 +66,41 @@ class _PasswordRecoveryPageState extends State<PasswordRecoveryPage> {
                       width: width - 10,
                       height: (width - 10) / 6,
                       margin: EdgeInsets.only(bottom: 5),
-                      child: TextField(
-                        autofocus: true,
-                        controller: emailController,
-                        obscureText: false,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey, width: 2.0),
+                      child: Container(
+                        margin: EdgeInsets.only(left: 20, right: 20, top: 5, bottom: 5),
+                        child: TextField(
+                          autofocus: false,
+                          controller: emailController,
+                          obscureText: false,
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.all(15),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                            fillColor: Colors.white, filled: true,
+                            hintText: 'name@example.com',
                           ),
-                          fillColor: Colors.white, filled: true,
-
-                          labelText: 'name@example.com',
                         ),
                       ),
                     ),
+                      SizedBox(height: 20,),
 
-                    Container(
-                      width: width - 10,
-                      height: (width - 10) / 7,
+
                       //margin: EdgeInsets.only( top: 5),
-                      child: ElevatedButton (
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.blue,
+                    ConstrainedBox(
+                      constraints: BoxConstraints.tightFor(width: width - 40, height: height/16),
+                        child:
+                        ElevatedButton (
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            ),),
+
+                          onPressed: resetPassword,
+                          child: Text("GET LINK"),
                         ),
-                        onPressed: resetPassword,
-                        child: Text("GET LINK"),
                       ),
-                    ),
+
                     SizedBox(
                       height: (width - 10) / 6,
                     )

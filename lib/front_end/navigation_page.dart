@@ -1,8 +1,7 @@
 //navigation bar
 
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'user_info_page.dart';
 import 'todo_page.dart';
 import 'dashboard.dart';
@@ -10,8 +9,7 @@ import 'search_meetings_page.dart';
 
 
 class NavigationScreen extends StatefulWidget {
-  final String documentId;
-  NavigationScreen(this.documentId);
+  const  NavigationScreen({Key? key}) : super(key: key);
 
   @override
   _NavigationScreenState createState() => _NavigationScreenState();
@@ -20,20 +18,17 @@ class NavigationScreen extends StatefulWidget {
 class _NavigationScreenState extends State<NavigationScreen> {
 
   int _selectedIndex = 0;
-  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-    }
-    );
+    });
   }
-
 
   @override
   Widget build(BuildContext context) {
     final screens = [
-      Dashboard(widget.documentId),
+      Dashboard(FirebaseAuth.instance.currentUser!.uid),
       SearchMeeting(),
       ToDoPage(),
       UserInfoPage(),
@@ -65,9 +60,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
         ],
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.white70,
+        selectedItemColor: Colors.white,
+        unselectedItemColor:  Colors.white70,
         onTap: _onItemTapped,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.black,
         //iconSize: ,
         //showUnselectedLabels: false,
 

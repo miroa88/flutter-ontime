@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '/front_end/navigation_page.dart';
 import 'create_date_time.dart';
 
-
 class CreateTitle extends StatefulWidget {
   final String userId;
   final String recordId;
@@ -39,7 +38,7 @@ class _CreateTitleState extends State<CreateTitle> {
               _deleteUser(widget.userId,widget.recordId);
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => NavigationScreen(widget.userId)),
+                MaterialPageRoute(builder: (context) => NavigationScreen()),
                     (Route<dynamic> route) => false,
               );
             }, icon: Icon(Icons.close)),
@@ -154,37 +153,54 @@ class _CreateTitleState extends State<CreateTitle> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton(onPressed: (){
-                  if(dropdownValue == "Please select")
-                  {
-                    setState(() {
-                      _typeChecked = false;
-                      _granted = false;
-                    });
-                  }
-                  if(titleController.text == "")
-                  {
-                    setState(() {
-                      _titleChecked = false;
-                      _granted = false;
-                    });
-                  }
-                  else
-                  {
-                    _titleChecked = true;
-                  }
-                  if( _titleChecked && _typeChecked)
-                  {
-                    _granted = true;
-                  }
-                  if(_granted)
-                  {
-                    _addUser(widget.userId,widget.recordId, titleController.text,dropdownValue);
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CreateDateTime(widget.userId,widget.recordId,dropdownValue)));
-                  }
-                }, child: Text("NEXT"))
+                SizedBox(
+                  width: 80,
+                  height: 35,
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.black, // Background color
+                        onPrimary: Colors.white, // Text Color (Foreground color)
+                      ),
+
+                      onPressed: (){
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => NextPage()),
+                    // );
+                    if(dropdownValue == "Please select")
+                    {
+                      setState(() {
+                        _typeChecked = false;
+                        _granted = false;
+                      });
+                    }
+                    if(titleController.text == "")
+                    {
+                      setState(() {
+                        _titleChecked = false;
+                        _granted = false;
+                      });
+                    }
+                    else
+                    {
+                      _titleChecked = true;
+                    }
+                    if( _titleChecked && _typeChecked)
+                    {
+                      _granted = true;
+                    }
+                    if(_granted)
+                    {
+                      final titleList =  searchElementGenerator(titleController.text);
+                      final typeList = searchElementGenerator(dropdownValue);
+                      _addUser(widget.userId,widget.recordId, titleController.text,dropdownValue);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) =>
+                              CreateDateTime(widget.userId,widget.recordId,dropdownValue,titleList + typeList)));
+                    }
+                  }, child: Text("NEXT")),
+                )
               ],
             ),
           )
@@ -215,4 +231,25 @@ class _CreateTitleState extends State<CreateTitle> {
         .then((value) => print("User Deleted"))
         .catchError((error) => print("Failed to delete user: $error"));
   }
+
+  List<String> searchElementGenerator(String s) {
+    List<String> tempList = List<String>.empty(growable: true);
+    String sLower = s.toLowerCase();
+
+    for (int i = 0; i < sLower.length; i++) {
+      if(i == 0) {
+        tempList.add(sLower[i]);
+      }
+      else {
+        tempList.add(tempList[i-1] + sLower[i]);
+      }
+
+    }
+    return tempList;
+  }
+
+
 }
+
+
+

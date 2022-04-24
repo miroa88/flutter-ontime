@@ -1,25 +1,30 @@
 //coping link pass etc
-
+import '../../back_end/notification_controller.dart';
+import '/../back_end/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:clipboard/clipboard.dart';
-
+import 'package:rxdart/rxdart.dart';
+import '../meeting_specifications_page.dart';
 import '/front_end/navigation_page.dart';
 
+
 class MeetingDetailsPage extends StatefulWidget {
+  final searchList;
   final String userId;
   final String recordId;
+  DateTime recordStartDateTime;
   String type;
   bool isZoom = false;
   bool isPhone = false;
   bool isInPerson = false;
-  MeetingDetailsPage(this.userId, this.recordId, this.type)
+  MeetingDetailsPage(this.userId, this.recordId, this.type, this.recordStartDateTime, this.searchList)
   {
     if(type == 'In person')
       isInPerson = true;
@@ -39,62 +44,30 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
   var phoneNumController = TextEditingController();
   var addressController = TextEditingController();
   bool _isAddressEmpty = false;
-  bool _granted = false;
   bool _isPhoneEmpty = false;
   bool _isLinkEmpty = false;
   bool _isPassEmpty = false;
+  bool _dateTimeErr = false;
+  bool _progressIndicator = false;
+  bool _tryAgain = false;
+  // late AndroidNotificationChannel channel;
 
-  late AndroidNotificationChannel channel;
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
   void initState() {
     super.initState();
-    initLocalNotification();
-    // FirebaseMessaging.instance.unsubscribeFromTopic("event");
-  }
 
-  void initLocalNotification() async {
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    FlutterLocalNotificationsPlugin().initialize(const InitializationSettings(
-      android: AndroidInitializationSettings('ontime1'),
-      iOS: IOSInitializationSettings(),
-    ));
+    NotificationController.initLocalNotification(selectNotification);
+    }
 
-    channel = const AndroidNotificationChannel(
-      'high_importance_channel', // id
-      'High Importance Notifications', // title
-
-      importance: Importance.high,
-      enableVibration: true,
+  void selectNotification(String? payload) async {
+    if (payload != null) {
+      print('notification payload: $payload');
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (context) => MeetingSpecifications(payload)),
     );
-
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-
-  }
-
-  Future _scheduleNotification(Duration dur, int id, String title, String body) async{
-    var location = Location('UTC', [minTime], [0], [TimeZone.UTC]);
-    flutterLocalNotificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        TZDateTime.now(location).add(dur),
-        NotificationDetails(
-            android: AndroidNotificationDetails(
-              channel.id,
-              channel.name,
-              importance: Importance.high,
-              icon: 'ontime1',
-            )
-        ),
-        androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime);
-    print("scheduled");
   }
 
   @override
@@ -108,7 +81,9 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
         .size
         .width;
 
-    return Scaffold(
+    return
+      // _GoToDashboard ? NavigationScreen(widget.userId) :
+      Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
@@ -118,7 +93,7 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
               _deleteUser(widget.userId,widget.recordId);
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => NavigationScreen(widget.userId)),
+                MaterialPageRoute(builder: (context) => NavigationScreen()),
                     (Route<dynamic> route) => false,
               );
             }, icon: Icon(Icons.close)),
@@ -410,60 +385,121 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
                 ],
               )
           ) : Container(),
+          _progressIndicator ? Container(
+              alignment: Alignment.topCenter,
+              margin: EdgeInsets.only(top: 20),
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.grey,
+                color: Colors.black,
+                strokeWidth: 10,
+              )
+          ) : Container(),
+
+          _dateTimeErr ? Center(
+            child: Text(
+              'The Meeting should be scheduled for a future time.\nPlease go back and pick another date or time.',
+              style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold),
+                ),
+          ) : Container(),
+
+          _tryAgain ? Center(
+            child: Text(
+              'Please try again',
+              style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold),
+            ),
+          ) : Container(),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Container(
                 margin: EdgeInsets.only(right: 20,top: 50),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if(addressController.text == "") {
-                      setState(() {
-                        _isAddressEmpty = true;
-                      });
-                    } else {_isAddressEmpty = false;}
+                child: SizedBox(
+                  height: 35,
+                  width: 84,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.black, // Background color
+                      onPrimary: Colors.white, // Text Color (Foreground color)
+                    ),
+                    onPressed: () async {
+                      setState(() {_tryAgain = false;});
+                      setState(() {_progressIndicator = true;});
 
-                    if(phoneNumController.text == "") {
-                      setState(() {
-                        _isPhoneEmpty= true;
-                      });
-                    } else {_isPhoneEmpty = false;}
+                      if(addressController.text.isEmpty) {
+                        setState(() {
+                          _isAddressEmpty = true;
+                        });
+                      } else {_isAddressEmpty = false;}
 
-                    if(linkController.text == "") {
-                      setState(() {
-                        _isLinkEmpty = true;
-                      });
-                    } else {_isLinkEmpty = false;}
+                      if(phoneNumController.text.isEmpty) {
+                        setState(() {
+                          _isPhoneEmpty= true;
+                        });
+                      } else {_isPhoneEmpty = false;}
 
-                    if(passController.text == "") {
-                      setState(() {
-                        _isPassEmpty = true;
-                      });
-                    } else {_isPassEmpty = false;}
+                      if(linkController.text.isEmpty) {
+                        setState(() {
+                          _isLinkEmpty = true;
+                        });
+                      } else {_isLinkEmpty = false;}
 
-                    if(!_isAddressEmpty || !_isPhoneEmpty || (!_isPassEmpty && !_isLinkEmpty))
-                      _granted = true;
+                      if(passController.text.isEmpty) {
+                        setState(() {
+                          _isPassEmpty = true;
+                        });
+                      } else {_isPassEmpty = false;}
 
-                    if(_granted)
-                    {
-                      _addUser(widget.userId, widget.recordId, linkController.text, passController.text,
-                          phoneNumController.text, addressController.text);
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => NavigationScreen(widget.userId)),
-                            (Route<dynamic> route) => false,
-                      );
-                    }
-                    int id = DateTime.now().millisecondsSinceEpoch;
-                    _scheduleNotification(
-                        Duration(seconds: 15),
-                        1234,
-                        widget.type,
-                        "Meeting will start on"
-                    );
-                  },
-                  child: const Text('CREATE'),
+                      if(!_isAddressEmpty || !_isPhoneEmpty || (!_isPassEmpty && !_isLinkEmpty))
+                      {
+                        print("start time ${widget.recordStartDateTime}");
+                        int id = (DateTime.now().millisecondsSinceEpoch) % 10000000000;//notification ID
+
+                        if((widget.recordStartDateTime.subtract(const Duration(seconds: 30)))
+                            .compareTo(DateTime.now()) > 0) {
+                          _addUser(widget.userId, widget.recordId, linkController.text, passController.text,
+                              phoneNumController.text, addressController.text, id, widget.searchList);
+                          await NotificationController.scheduleNotification(
+                            ((widget.recordStartDateTime.subtract( const Duration(minutes: 5))).compareTo(DateTime.now()) > 0) ?
+                            widget.recordStartDateTime.subtract(const Duration(minutes: 5)) :
+                            widget.recordStartDateTime , //it notifies about the meeting 5 min earlier
+                            id,
+                            "Meeting Reminder: ${widget.type}",
+                            "Meeting in 5 minutes.",
+                            widget.recordId.toString(),
+                          ).timeout(const Duration(seconds: 7),
+                            onTimeout: () {
+                                setState(() { _tryAgain = true;}); //timeout set to 7 seconds if scheduling went wrong
+                            }).onError((error, stackTrace) {
+                            print(error);
+                            setState(() {_tryAgain = true;});
+                          }).whenComplete(() {
+                            _addUser(widget.userId, widget.recordId, linkController.text, passController.text,
+                                phoneNumController.text, addressController.text, id, widget.searchList);
+                          });
+
+                          if(!_tryAgain) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => NavigationScreen()),
+                                  (Route<dynamic> route) => false,
+                            );
+                          }
+                        }
+                        else {
+                          setState(() {
+                            _dateTimeErr = true;
+                          });
+                        }
+                      }
+                      setState(() {_progressIndicator = false;});
+                    },
+                    child: const Text('CREATE'),
+                  ),
                 ),
               ),
             ],
@@ -472,8 +508,9 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
       ),
     );
   }
+
   Future<void> _addUser(String userID, String recordID, String link, String pass, String phoneNum,
-      String address) {
+      String address, int notificationID, List searchList) {
     CollectionReference users = FirebaseFirestore.instance.collection('users')
         .doc(userID).collection("records");
 
@@ -483,7 +520,9 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
       'Meeting_Link': link,
       'Password': pass,
       'Phone_number': phoneNum,
-      'Meeting_address' : address
+      'Meeting_address' : address,
+      'Notification_ID' : notificationID,
+      'search_list': FieldValue.arrayUnion(searchList),
     })
         .then((value) => print("Link Added"))
         .catchError((error) => print("Failed to add Link: $error"));
@@ -497,6 +536,21 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
         .delete()
         .then((value) => print("User Deleted"))
         .catchError((error) => print("Failed to delete user: $error"));
+  }
+
+  List<String> searchElementGenerator(String s) {
+    List<String> tempList = List<String>.empty(growable: true);
+    String sLower = s.toLowerCase();
+
+    for (int i = 0; i < sLower.length; i++) {
+      if(i == 0) {
+        tempList.add(sLower[i]);
+      }
+      else {
+        tempList.add(tempList[i-1] + sLower[i]);
+      }
+    }
+    return tempList;
   }
 
 }

@@ -11,10 +11,11 @@ import 'create_details.dart';
 import '/front_end/navigation_page.dart';
 
 class CreateDateTime extends StatefulWidget {
+  final searchList;
   final String userId;
   final String recordId;
   String type;
-  CreateDateTime(this.userId, this.recordId, this.type);
+  CreateDateTime(this.userId, this.recordId, this.type, this.searchList);
 
   @override
   _CreateDateTimeState createState() => _CreateDateTimeState();
@@ -27,15 +28,32 @@ class _CreateDateTimeState extends State<CreateDateTime> {
   var hourController = TextEditingController();
   bool _overlapChecked = true;
   bool _dateChecked = true;
-  bool _timeChecked = true;
-  bool _granted = false;
-  TimeOfDay currentTime = TimeOfDay.now();
+  bool _hourChecked = true;
+  bool _minChecked = true;
+  bool _futureTimeChecked = true;
+  TimeOfDay currentTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(minutes: 2)));
   DateTime currentDate = DateTime.now();
 
   Future<void> _selectTime(BuildContext context) async{
     final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: currentTime);
+      context: context,
+      initialTime: currentTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.black, // header background color
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                primary: Colors.black, // button text color
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
     if (pickedTime != null && pickedTime != currentTime)
       setState(() {
         currentTime = pickedTime;
@@ -44,10 +62,26 @@ class _CreateDateTimeState extends State<CreateDateTime> {
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: currentDate,
-        firstDate: DateTime.now(),
-        lastDate: DateTime(2030));
+      context: context,
+      initialDate: currentDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.light(
+                primary: Colors.black, // header background color
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  primary: Colors.black, // button text color
+                ),
+              ),
+            ),
+            child: child!,
+          );
+        },
+    );
     if (pickedDate != null && pickedDate != currentDate)
       setState(() {
         currentDate = pickedDate;
@@ -76,7 +110,7 @@ class _CreateDateTimeState extends State<CreateDateTime> {
               _deleteUser(widget.userId,widget.recordId);
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => NavigationScreen(widget.userId)),
+                MaterialPageRoute(builder: (context) => NavigationScreen()),
                     (Route<dynamic> route) => false,
               );
             }, icon: Icon(Icons.close)),
@@ -183,7 +217,7 @@ class _CreateDateTimeState extends State<CreateDateTime> {
                                 fontSize: 23.0),
                             decoration: InputDecoration(
                                 labelText: " hour",
-                                labelStyle: _timeChecked ? TextStyle(color: Colors.grey) : TextStyle(color: Colors.red),
+                                labelStyle: _hourChecked ? TextStyle(color: Colors.grey) : TextStyle(color: Colors.red),
                                 contentPadding: EdgeInsets.zero,
                                 border: OutlineInputBorder()
                             )
@@ -210,7 +244,7 @@ class _CreateDateTimeState extends State<CreateDateTime> {
                             style: TextStyle(fontSize: 23.0),
                             decoration: InputDecoration(
                               labelText: " min",
-                              labelStyle: _timeChecked ? TextStyle(color: Colors.grey) : TextStyle(color: Colors.red),
+                              labelStyle: _minChecked ? TextStyle(color: Colors.grey) : TextStyle(color: Colors.red),
                               contentPadding: EdgeInsets.zero,
                               border: OutlineInputBorder(),
                             )
@@ -235,6 +269,7 @@ class _CreateDateTimeState extends State<CreateDateTime> {
                 ),),
             ),
           ),
+
           _overlapChecked ?
           Container() :
           Center(
@@ -250,142 +285,170 @@ class _CreateDateTimeState extends State<CreateDateTime> {
             ),
           ),
 
+          _futureTimeChecked ?
+          Container() :
+          Center(
+            child: Container(
+              width: width*8/9,
+              child: Text('The date and time picked should be in the future!',
+                style: GoogleFonts.lato(
+                    textStyle: Theme.of(context).textTheme.headline4,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.red
+                ),),
+            ),
+          ),
+
           SizedBox(
             height: 25,
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Checkbox(
-                  activeColor: Colors.blue,
-                  value: isChecked,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      isChecked = value!;
-                    });
-                  }
-              ),
-              Text(
-                "Recurring Meeting",
-                style: GoogleFonts.lato(
-                    textStyle: Theme.of(context).textTheme.headline4,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w700,
-                    fontStyle: FontStyle.normal,
-                    color: Colors.black87
-                ),
-              ),
-              Spacer(),
+              // Checkbox(
+              //     activeColor: Colors.black,
+              //     value: isChecked,
+              //     onChanged: (bool? value) {
+              //       setState(() {
+              //         isChecked = value!;
+              //       });
+              //     }
+              // ),
+              // Text(
+              //   "Recurring Meeting",
+              //   style: GoogleFonts.lato(
+              //       textStyle: Theme.of(context).textTheme.headline4,
+              //       fontSize: 19,
+              //       fontWeight: FontWeight.w700,
+              //       fontStyle: FontStyle.normal,
+              //       color: Colors.black87
+              //   ),
+              // ),
+              // Spacer(),
               Container(
                   margin: EdgeInsets.only(right: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      ElevatedButton(onPressed: () async {
-                        int min = 0;
-                        int hour = 0;
-                        var recordStartDateTime = DateTime(currentDate.year, currentDate.month, currentDate.day, currentTime.hour,
-                            currentTime.minute, 0, 0, 0);
-                        if(hourController.text != ""){
-                          hour = int.parse(hourController.text);
-                        }
-                        if(minController.text != ""){
-                          min = int.parse(minController.text);
-                        }
-                        if(min == 0 && hour == 0)
-                        {
-                          setState(() {
-                            _timeChecked = false;
-                            _granted = false;
-                          });
-                        }
-                        else{
-                          setState(() {
-                            _timeChecked = true;
-                          });
-                        }
-                        if(recordStartDateTime.add(Duration(hours: hour, minutes: min)).day > currentDate.day){
-                          setState(() {
-                            _dateChecked = false;
-                            _granted = false;
-                          });
-                        }
-                        else{
-                          setState(() {
-                            _dateChecked = true;
-                          });
-                        }
-                        if(_dateChecked && _timeChecked)
-                        {
-                          await FirebaseFirestore.instance.collection('users')
-                              .doc(widget.userId).collection("records")
-                              .where("Date", isEqualTo: DateFormat.yMMMMd('en_US').format(currentDate).toString())
-                              .get().then((QuerySnapshot querySnapshot) {
-                            if(querySnapshot.docs.isEmpty){
-                              print("no overlap");
-                              setState(() {
-                                _overlapChecked = true;
-                              });
+                      SizedBox(
+                        width: 80,
+                        height: 35,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                          int min = 0;
+                          int hour = 0;
+                          var recordStartDateTime = DateTime(currentDate.year, currentDate.month, currentDate.day, currentTime.hour,
+                              currentTime.minute, 0, 0, 0);
+
+                          if(hourController.text.isNotEmpty) { // checking the hour text field
+                            hour = int.parse(hourController.text);
+                            setState(() { _hourChecked = true;});
+                          }
+                          else {
+                            setState(() {_hourChecked = false;});
+                          }
+
+                          if(minController.text.isNotEmpty  // checking the minute text field
+                              && (int.parse(minController.text) > 0 || hour > 0)) //meeting duration should be at least 1 min
+                          {
+                            min = int.parse(minController.text);
+                            setState(() {_minChecked = true; });
+                          }
+                          else{
+                            setState(() {_minChecked = false; });
+                          }
+
+
+                          if(_hourChecked && _minChecked) { //Check to see that the duration does not extend into the next day.
+                            if(recordStartDateTime.add(Duration(hours: hour, minutes: min)).day > currentDate.day){
+                              setState(() {_dateChecked = false;});
                             }
-                            for (var doc in querySnapshot.docs) {
-                              if(doc['Record_ID'] == widget.recordId)
-                                continue;
-                              DateTime docStartDateTime = doc["date_time"].toDate();
-                              final duration = doc["Duration"].split(':');
-                              if(duration[0] == "")
-                                duration[0] = '0';
-                              if(duration[1] == "")
-                                duration[1] = '0';
-                              print(duration[0]);
-                              var docEndDateTime = docStartDateTime.add(
-                                  Duration( hours: int.parse(duration[0]),minutes: int.parse(duration[1]))
-                              );
-                              var recordEndDateTime = recordStartDateTime.add(Duration(hours: hour, minutes: min));
-                              if(recordEndDateTime.isBefore(docStartDateTime) ||
-                                  recordStartDateTime.isAfter(docEndDateTime))
-                              {
+                            else{
+                              setState(() {_dateChecked = true;});
+                            }
+                          }
+
+                          if(_dateChecked && _minChecked && _hourChecked)
+                          {
+                            await FirebaseFirestore.instance.collection('users')
+                                .doc(widget.userId).collection("records")
+                                .where("Date", isEqualTo: DateFormat.yMMMMd('en_US').format(currentDate).toString())
+                                .get().then((QuerySnapshot querySnapshot) {
+                              if(querySnapshot.docs.isEmpty){
                                 print("no overlap");
-                                if(!_overlapChecked)
+                                setState(() {_overlapChecked = true; });
+                              }
+                              for (var doc in querySnapshot.docs) {
+                                if(doc['Record_ID'] == widget.recordId)
+                                  continue;
+                                DateTime docStartDateTime = doc["date_time"].toDate();
+                                final duration = doc["Duration"].split(' ');
+                                print("diration[0] is ${duration[0]} and  diration[3] is ${duration[3]}");
+                                var docEndDateTime = docStartDateTime.add(
+                                    Duration( hours: int.parse(duration[0]),minutes: int.parse(duration[3])))
+                                    .subtract(const Duration(seconds: 1));  //to able start a new meeting right after existing one
+                                var recordEndDateTime = recordStartDateTime.add(Duration(hours: hour, minutes: min))
+                                .subtract(const Duration(seconds: 1)); //to able start a new meeting right after existing one
+
+                                if(recordEndDateTime.isBefore(docStartDateTime) ||
+                                    recordStartDateTime.isAfter(docEndDateTime))
                                 {
-                                  setState(() {
-                                    _overlapChecked = true;
-                                  });
+                                  print("no overlap");
+                                  if(!_overlapChecked)
+                                  {
+                                    setState(() {_overlapChecked = true;});
+                                  }
+                                }
+                                else
+                                {
+                                  print("an overlap found");
+                                  setState(() {_overlapChecked = false;});
+                                  break;
                                 }
                               }
-                              else
-                              {
-                                print("overlap");
-                                setState(() {
-                                  _overlapChecked = false;
-                                });
-                                _granted = false;
-                                break;
-                              }
-                            }
-                          });
-                        }
-                        if(_overlapChecked && _dateChecked && _timeChecked)
-                          _granted = true;
-                        if(_granted)
-                        {
-                          _addUser(widget.userId, widget.recordId,
-                              DateFormat.yMMMMd('en_US').format(currentDate).toString(),
-                              currentTime.format(context).toString(),
-                              // currentTime.hour.toString() + ":" + currentTime.minute.toString(),
-                              (hourController.text == "" ? '0' : hourController.text ) + ":" +
-                                  (minController.text == "" ? '0' : minController.text ),
-                              isChecked.toString(), recordStartDateTime);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => MeetingDetailsPage(widget.userId,widget.recordId,widget.type)),
+                            });
+                          }
 
-                          );
-                        }
-                      },
-                        child: Text("NEXT"),
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.blue, // Background color
-                          onPrimary: Colors.white, // Text Color (Foreground color)
+                          if(recordStartDateTime.compareTo(DateTime.now()) <= 0) { //check if the selected time is in the future
+                            setState(() {_futureTimeChecked = false;});
+                          }
+                          else{
+                            setState(() { _futureTimeChecked = true; });
+                          }
+
+
+                          if(_overlapChecked && _dateChecked && _hourChecked && _minChecked && _futureTimeChecked)
+                          {
+
+                            final dateTimeList = searchElementGenerator(
+                                DateFormat.yMMMMd('en_US').format(currentDate).toString() +
+                                " " + currentTime.format(context).toString()
+                            );
+                            final durationList = searchElementGenerator(
+                              hour.toString() + " hour " + min.toString() + " minute",
+                            );
+
+                            _addUser(widget.userId, widget.recordId,
+                                DateFormat.yMMMMd('en_US').format(currentDate).toString(),
+                                currentTime.format(context).toString(),
+                                hour.toString() + " hour and " + min.toString() + " minute",
+                                hour*60 + min,
+                                isChecked.toString(), recordStartDateTime);
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) =>
+                                  MeetingDetailsPage(widget.userId,widget.recordId,widget.type, recordStartDateTime,
+                                      dateTimeList + durationList + widget.searchList)),
+                            );
+                          }
+                        },
+                          child: Text("NEXT"),
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.black, // Background color
+                            onPrimary: Colors.white, // Text Color (Foreground color)
+                          ),
                         ),
                       ),
                     ],
@@ -399,7 +462,7 @@ class _CreateDateTimeState extends State<CreateDateTime> {
   }
 
   Future<void> _addUser(String userID, String recordID, String date,
-      String sTime, String duration, String isChecked, DateTime recordDT) {
+      String sTime, String duration,int durMin, String isChecked, DateTime recordDT) {
     CollectionReference users = FirebaseFirestore.instance.collection('users')
         .doc(userID).collection("records");
 
@@ -409,8 +472,9 @@ class _CreateDateTimeState extends State<CreateDateTime> {
       'Date': date,
       'Start_Time': sTime,
       'Duration' : duration,
+      'duration-min' : durMin,
       'Recurring_Meeting' : isChecked,
-      'date_time' : Timestamp.fromDate(recordDT)
+      'date_time' : Timestamp.fromDate(recordDT),
     })
         .then((value) => print("Date Added"))
         .catchError((error) => print("Failed to add date: $error"));
@@ -424,6 +488,21 @@ class _CreateDateTimeState extends State<CreateDateTime> {
         .delete()
         .then((value) => print("User Deleted"))
         .catchError((error) => print("Failed to delete user: $error"));
+  }
+
+  List<String> searchElementGenerator(String s) {
+    List<String> tempList = List<String>.empty(growable: true);
+    String sLower = s.toLowerCase();
+
+    for (int i = 0; i < sLower.length; i++) {
+      if(i == 0) {
+        tempList.add(sLower[i]);
+      }
+      else {
+        tempList.add(tempList[i-1] + sLower[i]);
+      }
+    }
+    return tempList;
   }
 }
 

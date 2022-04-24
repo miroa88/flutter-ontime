@@ -7,23 +7,30 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
+import 'package:practice_app/back_end/notification_controller.dart';
 import 'package:timezone/timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'front_end/meeting_specifications_page.dart';
 import 'front_end/navigation_page.dart';
 import 'front_end/register_login/login_page.dart';
+import '/back_end/notification_controller.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'front_end/register_login/varify_email.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-
-  await Firebase.initializeApp();
-  print('Handling a background message ${message.messageId}');
-}
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//
+//   await Firebase.initializeApp();
+//   print('Handling a background message ${message.messageId}');
+// }
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   tz.initializeTimeZones();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
+  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   runApp( const MyApp());
 }
 
@@ -36,202 +43,204 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-  TextEditingController username = TextEditingController();
-  TextEditingController bodyController = TextEditingController();
-  TextEditingController titleController = TextEditingController();
-  late AndroidNotificationChannel channel;
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  // TextEditingController username = TextEditingController();
+  // TextEditingController bodyController = TextEditingController();
+  // TextEditingController titleController = TextEditingController();
+  // late AndroidNotificationChannel channel;
+  // late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-  String? tokens = " ";
+  // String? tokens = " ";
 
   @override
   void initState() {
     super.initState();
-    requestPermission();
-    loadFCM();
-    listenFCM();
-    getToken();
+
+    // requestPermission();
+    // loadFCM();
+    // listenFCM();
+    // getToken();
     
-    FirebaseMessaging.instance.subscribeToTopic("event");
+    // FirebaseMessaging.instance.subscribeToTopic("event");
     // FirebaseMessaging.instance.unsubscribeFromTopic("event");
+    FlutterNativeSplash.remove();
   }
 
   //local notification
-  Future _showNotification() async{
-    flutterLocalNotificationsPlugin.show(
-      454747,
-      "test",
-      "body of test notification",
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          channel.id,
-          channel.name,
-          importance: Importance.high,
-          icon: 'ic_launcher',
-        ),
-      ),
-    );
-  }
-  Future _scheduleNotification(Duration dur) async{
-    var location = Location('UTC', [minTime], [0], [TimeZone.UTC]);
-    flutterLocalNotificationsPlugin.zonedSchedule(
-        1234,
-        "test",
-        "scheduled notification",
-        TZDateTime.now(location).add(dur),
-        NotificationDetails(
-            android: AndroidNotificationDetails(
-              channel.id,
-              channel.name,
-              importance: Importance.high,
-              icon: 'ic_launcher',
-            )
-        ),
-        androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime);
-    print("scheduled");
-  }
-
-  Future _cancelNotification(int id) async{
-    await flutterLocalNotificationsPlugin.cancel(id);
-    print("canceled");
-  }
-
-
-
-
-  void saveToken(String token) async {
-    await FirebaseFirestore.instance.collection("userTokens").doc("user1").set({
-      'token' : token, }
-    );
-  }
-  void getToken() async {
-    await FirebaseMessaging.instance.getToken().then(
-            (token) => {
-          setState(() {
-            tokens = token;
-          }),
-          saveToken(token!)
-        }
-    );
-  }
-
-  void getTokenFromFirestore() async {
-
-}
+  // Future _showNotification() async{
+  //   flutterLocalNotificationsPlugin.show(
+  //     454747,
+  //     "test",
+  //     "body of test notification",
+  //     NotificationDetails(
+  //       android: AndroidNotificationDetails(
+  //         channel.id,
+  //         channel.name,
+  //         importance: Importance.high,
+  //         icon: 'ic_launcher',
+  //       ),
+  //     ),
+  //   );
+  // }
+  // Future _scheduleNotification(Duration dur) async{
+  //   var location = Location('UTC', [minTime], [0], [TimeZone.UTC]);
+  //   flutterLocalNotificationsPlugin.zonedSchedule(
+  //       1234,
+  //       "test",
+  //       "scheduled notification",
+  //       TZDateTime.now(location).add(dur),
+  //       NotificationDetails(
+  //           android: AndroidNotificationDetails(
+  //             channel.id,
+  //             channel.name,
+  //             importance: Importance.high,
+  //             icon: 'ic_launcher',
+  //           )
+  //       ),
+  //       androidAllowWhileIdle: true,
+  //       uiLocalNotificationDateInterpretation:
+  //         UILocalNotificationDateInterpretation.absoluteTime);
+  //   print("scheduled");
+  // }
+  //
+  // Future _cancelNotification(int id) async{
+  //   await flutterLocalNotificationsPlugin.cancel(id);
+  //   print("canceled");
+  // }
 
 
 
-  void sendPushMessage(String token, String body, String title) async {
-    try {
-      await http.post(
-        Uri.parse('https://fcm.googleapis.com/fcm/send'),
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAFd08HXU:APA91bEsHKfOJmIafv_d7UD8eGXXsQ0lSWLAMeN5MsECkV0icThDViEuIx72fnKtFlkuUW846ydBidFU57bVK5r6Dve2IeQeGS30zmjj4-DgMVZSw_iHEIUV7rykriUqZqt63iXOllLq',
-        },
-        body: jsonEncode(
-          <String, dynamic>{
-            'notification': <String, dynamic>{
-              'body': body,
-              'title': title
-            },
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'id': '1', //FirebaseAuth.instance.currentUser.uid,
-              'status': 'done',
-            },
-            "to": token,
-          },
-        ),
-      );
-    } catch (e) {
-      print("error push notification");
-    }
-  }
-
-  void requestPermission() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    NotificationSettings settings = await messaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true
-    );
-
-    if(settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
-    }
-    else if (settings.authorizationStatus == AuthorizationStatus.provisional){
-      print('User granted provisional permission');
-    }
-    else{
-      print("user declined or has not accepted permission");
-    }
-  }
+//
+//   void saveToken(String token) async {
+//     await FirebaseFirestore.instance.collection("userTokens").doc("user1").set({
+//       'token' : token, }
+//     );
+//   }
+//   void getToken() async {
+//     await FirebaseMessaging.instance.getToken().then(
+//             (token) => {
+//           setState(() {
+//             tokens = token;
+//           }),
+//           saveToken(token!)
+//         }
+//     );
+//   }
+//
+//   void getTokenFromFirestore() async {
+//
+// }
 
 
-  void listenFCM() async {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-      if (notification != null && android != null && !kIsWeb) {
-        flutterLocalNotificationsPlugin.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          NotificationDetails(
-            android: AndroidNotificationDetails(
-              channel.id,
-              channel.name,
-              // TODO add a proper drawable resource to android, for now using
-              //      one that already exists in example app.
-              icon: 'launch_background',
-            ),
-          ),
-        );
-      }
-    });
-  }
+
+  // void sendPushMessage(String token, String body, String title) async {
+  //   try {
+  //     await http.post(
+  //       Uri.parse('https://fcm.googleapis.com/fcm/send'),
+  //       headers: <String, String>{
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'key=AAAAFd08HXU:APA91bEsHKfOJmIafv_d7UD8eGXXsQ0lSWLAMeN5MsECkV0icThDViEuIx72fnKtFlkuUW846ydBidFU57bVK5r6Dve2IeQeGS30zmjj4-DgMVZSw_iHEIUV7rykriUqZqt63iXOllLq',
+  //       },
+  //       body: jsonEncode(
+  //         <String, dynamic>{
+  //           'notification': <String, dynamic>{
+  //             'body': body,
+  //             'title': title
+  //           },
+  //           'priority': 'high',
+  //           'data': <String, dynamic>{
+  //             'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+  //             'id': '1', //FirebaseAuth.instance.currentUser.uid,
+  //             'status': 'done',
+  //           },
+  //           "to": token,
+  //         },
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     print("error push notification");
+  //   }
+  // }
+  //
+  // void requestPermission() async {
+  //   FirebaseMessaging messaging = FirebaseMessaging.instance;
+  //
+  //   NotificationSettings settings = await messaging.requestPermission(
+  //       alert: true,
+  //       announcement: false,
+  //       badge: true,
+  //       carPlay: false,
+  //       criticalAlert: false,
+  //       provisional: false,
+  //       sound: true
+  //   );
+  //
+  //   if(settings.authorizationStatus == AuthorizationStatus.authorized) {
+  //     print('User granted permission');
+  //   }
+  //   else if (settings.authorizationStatus == AuthorizationStatus.provisional){
+  //     print('User granted provisional permission');
+  //   }
+  //   else{
+  //     print("user declined or has not accepted permission");
+  //   }
+  // }
 
 
-  void loadFCM() async {
-    if (!kIsWeb) {
-      channel = const AndroidNotificationChannel(
-        'high_importance_channel', // id
-        'High Importance Notifications', // title
+  // void listenFCM() async {
+  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //     RemoteNotification? notification = message.notification;
+  //     AndroidNotification? android = message.notification?.android;
+  //     if (notification != null && android != null && !kIsWeb) {
+  //       flutterLocalNotificationsPlugin.show(
+  //         notification.hashCode,
+  //         notification.title,
+  //         notification.body,
+  //         NotificationDetails(
+  //           android: AndroidNotificationDetails(
+  //             channel.id,
+  //             channel.name,
+  //             // TODO add a proper drawable resource to android, for now using
+  //             //      one that already exists in example app.
+  //             icon: 'launch_background',
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //   });
+  // }
 
-        importance: Importance.high,
-        enableVibration: true,
-      );
 
-      flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      /// Create an Android Notification Channel.
-      ///
-      /// We use this channel in the `AndroidManifest.xml` file to override the
-      /// default FCM channel to enable heads up notifications.
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
-
-      /// Update the iOS foreground notification presentation options to allow
-      /// heads up notifications.
-      await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
-}
+//   void loadFCM() async {
+//     if (!kIsWeb) {
+//       channel = const AndroidNotificationChannel(
+//         'high_importance_channel', // id
+//         'High Importance Notifications', // title
+//
+//         importance: Importance.high,
+//         enableVibration: true,
+//       );
+//
+//       flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+//
+//       /// Create an Android Notification Channel.
+//       ///
+//       /// We use this channel in the `AndroidManifest.xml` file to override the
+//       /// default FCM channel to enable heads up notifications.
+//       await flutterLocalNotificationsPlugin
+//           .resolvePlatformSpecificImplementation<
+//           AndroidFlutterLocalNotificationsPlugin>()
+//           ?.createNotificationChannel(channel);
+//
+//       /// Update the iOS foreground notification presentation options to allow
+//       /// heads up notifications.
+//       await FirebaseMessaging.instance
+//           .setForegroundNotificationPresentationOptions(
+//         alert: true,
+//         badge: true,
+//         sound: true,
+//       );
+//     }
+// }
 
 
 
@@ -239,6 +248,28 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "onTime",
+      color: Colors.red,
+      theme: ThemeData(
+        // Define the default brightness and colors.
+          appBarTheme: AppBarTheme(
+            color: const Color(0xFF151026),
+          ),
+        // brightness: Brightness.light,
+        // primaryColor: Colors.lightBlueAccent,
+
+
+        // Define the default font family.
+        fontFamily: 'Lato',
+
+        // Define the default `TextTheme`. Use this to specify the default
+        // text styling for headlines, titles, bodies of text, and more.
+        // textTheme: const TextTheme(
+        //   headline6: TextStyle(fontSize: 30.0, fontStyle: FontStyle.normal),
+        // ),
+      ),
+
       home:
       // Scaffold(
       //   body: Center(
@@ -290,9 +321,7 @@ class _MyAppState extends State<MyApp> {
               return Center(child: Text("something went wrong"),);
             }
             else if(snapshot.hasData){
-              return
-                // MyNextPage(flutterLocalNotificationsPlugin, channel);
-                NavigationScreen(FirebaseAuth.instance.currentUser!.uid,);
+              return VerifyEmailPage();
             }
             else{
               return LoginPage();
