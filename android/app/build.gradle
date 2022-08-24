@@ -51,13 +51,13 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.abdalianm.practice_app"
+        applicationId "com.abdalianm.ontime"
         minSdkVersion 28
         targetSdkVersion 31
         multiDexEnabled = true
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        //manifestPlaceholders = [appAuthRedirectScheme: "com.abdalianm.practice_app"]
+        //manifestPlaceholders = [appAuthRedirectScheme: "com.abdalianm.ontime"]
 
     }
 

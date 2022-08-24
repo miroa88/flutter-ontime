@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:practice_app/back_end/notification_controller.dart';
+import 'package:practice_app/back_end/ontime_user.dart';
 import '/front_end/create_new_meeting/create_title.dart';
 import 'package:uuid/uuid.dart';
 import 'meeting_specifications_page.dart';
@@ -199,6 +200,7 @@ class _DashboardState extends State<Dashboard> {
                               IconButton(onPressed: () {
                                 _deleteUser(widget.userId, data['Record_ID']);
                                 NotificationController.cancelNotification(data['Notification_ID']);
+                                OnTimeUser.initUsers();
                               }, icon: Icon(Icons.delete))
                             ],
                           ),

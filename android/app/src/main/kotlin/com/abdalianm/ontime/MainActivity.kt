@@ -1,4 +1,4 @@
-package com.abdalianm.practice_app
+package com.abdalianm.ontime
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -95,7 +95,7 @@ class _ToDoPageState extends State<ToDoPage> {
       body: Column(
         children: [
           Expanded(
-            flex: 20,
+            flex: 22,
             child: Card(
               child: Container(
                 margin: EdgeInsets.only(right: 20),

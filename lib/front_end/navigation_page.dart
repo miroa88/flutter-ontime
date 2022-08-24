@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../back_end/ontime_user.dart';
 import 'user_info_page.dart';
 import 'todo_page.dart';
 import 'dashboard.dart';
@@ -19,11 +20,22 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    OnTimeUser.initUsers();
+  }
+
+
+
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {

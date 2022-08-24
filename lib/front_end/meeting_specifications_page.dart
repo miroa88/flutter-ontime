@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import '../back_end/Record.dart';
 import '../back_end/notification_controller.dart';
+import '../back_end/ontime_user.dart';
 import 'navigation_page.dart';
 
 class MeetingSpecifications extends StatefulWidget {
@@ -255,7 +256,12 @@ class _MeetingSpecificationsState extends State<MeetingSpecifications> {
                   }, child: Text('Show notes',
                   style: TextStyle(
                     fontSize: 17
-                  ),))
+                  ),)
+                  ),
+                  // TextButton(onPressed: (){
+                  //   OnTimeUser.records.forEach((key, value) {print(key + " " + value.date);});
+                  //   print("*************************************");
+                  // }, child: Icon(Icons.title))
                 ],
               ),
             )
